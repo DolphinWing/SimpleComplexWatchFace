@@ -191,10 +191,12 @@ class MyWatchFace : CanvasWatchFaceService() {
                     ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_RIGHT,
                     ComplicationDrawable(applicationContext))
+            mComplicationDrawable.put(Configs.COMPLICATION_ID_TOP,
+                    ComplicationDrawable(applicationContext))
             setComplicationsActiveAndAmbientColors(Color.DKGRAY)
             setActiveComplications(Configs.COMPLICATION_ID_BACKGROUND,
                     Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
-                    Configs.COMPLICATION_ID_BOTTOM)
+                    Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP)
         }
 
         private fun initializeWatchFace() {
@@ -443,6 +445,12 @@ class MyWatchFace : CanvasWatchFaceService() {
                     (verticalOffset + sizeOfComplication * 1.5f).toInt(),
                     (mCenterX + sizeOfComplication / 2).toInt(),
                     (verticalOffset + sizeOfComplication * 2.5f).toInt())
+            mComplicationDrawable.get(Configs.COMPLICATION_ID_TOP).bounds = Rect(
+                    horizontalOffset,
+                    verticalOffset - sizeOfComplication * 2,
+                    horizontalOffset + midpointOfScreen + sizeOfComplication,
+                    verticalOffset - sizeOfComplication
+            )
 
 //            /* Scale loaded background image (more efficient) if surface dimensions change. */
 //            val scale = width.toFloat() / mBackgroundBitmap.width.toFloat()

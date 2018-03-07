@@ -90,7 +90,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             }
 
         }, mWatchFaceComponentName,
-                Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT, Configs.COMPLICATION_ID_BOTTOM)
+                Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
+                Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP)
     }
 
     override fun onDestroy() {
@@ -155,7 +156,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         if (resultCode == Activity.RESULT_OK)
             when (requestCode) {
                 Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
-                Configs.COMPLICATION_ID_BOTTOM -> {
+                Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP -> {
                     // Retrieves information for selected Complication provider.
                     val complicationProviderInfo = data?.getParcelableExtra<ComplicationProviderInfo>(ProviderChooserIntent.EXTRA_PROVIDER_INFO)
                     Log.d(TAG, "Provider: $complicationProviderInfo")
@@ -173,6 +174,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             Configs.COMPLICATION_ID_LEFT -> R.id.icon1
             Configs.COMPLICATION_ID_RIGHT -> R.id.icon2
             Configs.COMPLICATION_ID_BOTTOM -> R.id.icon3
+            Configs.COMPLICATION_ID_TOP -> R.id.icon4
             else -> 0
         }
         complicationProviderInfo?.let {
@@ -261,11 +263,13 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         private var icon1: ImageView = view.findViewById(R.id.icon1)
         private var icon2: ImageView = view.findViewById(R.id.icon2)
         private var icon3: ImageView = view.findViewById(R.id.icon3)
+        private val icon4: ImageView = view.findViewById(R.id.icon4)
 
         init {
             icon1.setOnClickListener(this)
             icon2.setOnClickListener(this)
             icon3.setOnClickListener(this)
+            icon4.setOnClickListener(this)
         }
 
         override fun onClick(view: View?) {
@@ -273,6 +277,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                 R.id.icon1 -> launchComplicationChooser(Configs.COMPLICATION_ID_LEFT)
                 R.id.icon2 -> launchComplicationChooser(Configs.COMPLICATION_ID_RIGHT)
                 R.id.icon3 -> launchComplicationChooser(Configs.COMPLICATION_ID_BOTTOM)
+                R.id.icon4 -> launchComplicationChooser(Configs.COMPLICATION_ID_TOP)
             }
         }
 
@@ -283,19 +288,27 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                     Configs.COMPLICATION_ID_LEFT -> icon1.setImageIcon(it.providerIcon)
                     Configs.COMPLICATION_ID_RIGHT -> icon2.setImageIcon(it.providerIcon)
                     Configs.COMPLICATION_ID_BOTTOM -> icon3.setImageIcon(it.providerIcon)
+                    Configs.COMPLICATION_ID_TOP -> icon4.setImageIcon(it.providerIcon)
                 }
             }
         }
 
         private fun launchComplicationChooser(watchFaceComplicationId: Int) {
             val watchFace = ComponentName(activity, MyWatchFace::class.java)
+            val types = when (watchFaceComplicationId) {
+                Configs.COMPLICATION_ID_TOP ->
+                    ComplicationData.TYPE_ICON + ComplicationData.TYPE_RANGED_VALUE +
+                            ComplicationData.TYPE_LONG_TEXT + //ComplicationData.TYPE_LARGE_IMAGE +
+                            ComplicationData.TYPE_SHORT_TEXT + ComplicationData.TYPE_SMALL_IMAGE
+                else -> ComplicationData.TYPE_ICON +
+                        ComplicationData.TYPE_LARGE_IMAGE + ComplicationData.TYPE_LONG_TEXT
+            }
             activity.startActivityForResult(
                     ComplicationHelperActivity.createProviderChooserHelperIntent(
                             activity,
                             watchFace,
                             watchFaceComplicationId,
-                            ComplicationData.TYPE_SHORT_TEXT,
-                            ComplicationData.TYPE_SMALL_IMAGE),
+                            types),
                     watchFaceComplicationId)
         }
     }
