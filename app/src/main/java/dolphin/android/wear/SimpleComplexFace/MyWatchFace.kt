@@ -2,12 +2,14 @@
 
 package dolphin.android.wear.SimpleComplexFace
 
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.*
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.preference.PreferenceManager
 import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.SystemProviders
 import android.support.wearable.complications.rendering.ComplicationDrawable
@@ -38,15 +40,15 @@ private const val MINUTE_STROKE_WIDTH = 5f
 private const val SECOND_TICK_STROKE_WIDTH = 3f
 
 private const val CENTER_GAP_AND_CIRCLE_RADIUS = 4f
+private const val CENTER_GAP_AND_CIRCLE_RADIUS_M = CENTER_GAP_AND_CIRCLE_RADIUS * 3
+private const val CENTER_GAP_AND_CIRCLE_RADIUS_H = CENTER_GAP_AND_CIRCLE_RADIUS_M * 2
 
 private const val SHADOW_RADIUS = 6f
 
 private const val TAG = "MyWatchFace"
 
-//private const val BACKGROUND_COMPLICATION = 9000
-//private const val LEFT_COMPLICATION = 9001
-//private const val RIGHT_COMPLICATION = 9002
-//private const val BOTTOM_COMPLICATION = 9003
+private const val OUTER_RING_THICKNESS = 3f
+private const val INNER_RING_THICKNESS = 9f
 
 /**
  * Analog watch face with a ticking second hand. In ambient mode, the second hand isn't
@@ -89,9 +91,14 @@ class MyWatchFace : CanvasWatchFaceService() {
         private var mCenterX: Float = 0F
         private var mCenterY: Float = 0F
 
-        private var mSecondHandLength: Float = 0F
-        private var sMinuteHandLength: Float = 0F
-        private var sHourHandLength: Float = 0F
+//        private var mSecondHandLength: Float = 0F
+//        private var sMinuteHandLength: Float = 0F
+//        private var sHourHandLength: Float = 0F
+        private val mBatteryInnerRing = RectF()
+        private val mBatteryOuterRing = RectF()
+        //use left,top as start point, use right,bottom as stop point
+        private val mClockTick = Array(size = 12, init = { RectF() })
+        private val mClockHand = Array(size = 3, init = { RectF() })
 
         /* Colors for all hands (hour, minute, seconds, ticks) based on photo loaded. */
         private var mWatchHandColor: Int = 0
@@ -171,6 +178,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                     SystemProviders.DATE, ComplicationData.TYPE_SHORT_TEXT)
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_RIGHT,
                     SystemProviders.STEP_COUNT, ComplicationData.TYPE_SHORT_TEXT)
+            setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_BOTTOM,
+                    SystemProviders.UNREAD_NOTIFICATION_COUNT, ComplicationData.TYPE_SHORT_TEXT)
             mComplicationDrawable.put(Configs.COMPLICATION_ID_BOTTOM,
                     ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_LEFT,
@@ -343,14 +352,58 @@ class MyWatchFace : CanvasWatchFaceService() {
             mCenterX = width / 2f
             mCenterY = height / 2f
 
+            //calculate fixed position before drawing
+            mBatteryOuterRing.apply {
+                left = OUTER_RING_THICKNESS
+                right = width - OUTER_RING_THICKNESS
+                top = OUTER_RING_THICKNESS
+                bottom = height - OUTER_RING_THICKNESS
+            }
+            mBatteryInnerRing.apply {
+                left = INNER_RING_THICKNESS
+                right = width - INNER_RING_THICKNESS
+                top = INNER_RING_THICKNESS
+                bottom = height - INNER_RING_THICKNESS
+            }
+            val innerTickRadius = mCenterX - 10
+            val outerTickRadius = mCenterX
+            for (tickIndex in 0..11) {
+                val tickRot = (tickIndex.toDouble() * Math.PI * 2.0 / 12).toFloat()
+                mClockTick[tickIndex].apply {
+                    left = Math.sin(tickRot.toDouble()).toFloat() * innerTickRadius
+                    top = (-Math.cos(tickRot.toDouble())).toFloat() * innerTickRadius
+                    right = Math.sin(tickRot.toDouble()).toFloat() * outerTickRadius
+                    bottom = (-Math.cos(tickRot.toDouble())).toFloat() * outerTickRadius
+                }
+            }
+
             mTickAndCirclePaint.textSize = mCenterX / 2 + 20
 
             /*
              * Calculate lengths of different hands based on watch screen size.
              */
-            mSecondHandLength = (mCenterX * 0.85).toFloat()
-            sMinuteHandLength = (mCenterX * 0.75).toFloat()
-            sHourHandLength = (mCenterX * 0.4).toFloat()
+            val mSecondHandLength = (mCenterX * 0.85).toFloat()
+            val sMinuteHandLength = (mCenterX * 0.75).toFloat()
+            val sHourHandLength = (mCenterX * 0.5).toFloat()
+            //calculate hour/minute/second hand line
+            mClockHand[0].apply {
+                left = mCenterX
+                top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS_H
+                right = mCenterX
+                bottom = mCenterY - sHourHandLength
+            }
+            mClockHand[1].apply {
+                left = mCenterX
+                top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS_M
+                right = mCenterX
+                bottom = mCenterY - sMinuteHandLength
+            }
+            mClockHand[2].apply {
+                left = mCenterX
+                top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS
+                right = mCenterX
+                bottom = mCenterY - mSecondHandLength
+            }
 
             // For most Wear devices, width and height are the same, so we just chose one (width).
             val sizeOfComplication = width / 5
@@ -447,10 +500,11 @@ class MyWatchFace : CanvasWatchFaceService() {
         override fun onDraw(canvas: Canvas, bounds: Rect) {
             val now = System.currentTimeMillis()
             mCalendar.timeInMillis = now
-
-            drawBackground(canvas)
-            drawComplications(canvas, now)
-            drawWatchFace(canvas)
+            if (shouldTimerBeRunning()) {
+                drawBackground(canvas)
+                drawComplications(canvas, now)
+                drawWatchFace(canvas)
+            }
         }
 
         private fun drawBackground(canvas: Canvas) {
@@ -462,12 +516,18 @@ class MyWatchFace : CanvasWatchFaceService() {
             } else {
 //                canvas.drawBitmap(mBackgroundBitmap, 0f, 0f, mBackgroundPaint)
                 if (mEnableBatteryLevel) {
-                    canvas.drawArc(3f, 3f, mCenterX * 2 - 3, mCenterY * 2 - 3,
-                            0f, 36 * mBatteryLevel, true, mBatteryLevelPaint)
-                    canvas.drawArc(10f, 10f, mCenterX * 2 - 10, mCenterY * 2 - 10,
-                            0f, 36 * mBatteryLevel, true, mBatteryInnerPaint)
+                    drawBatteryBackground(canvas, mBatteryLevel)
+                }
+                //draw ticks
+                for (t in mClockTick) {
+                    canvas.drawLine(t.left, t.top, t.right, t.bottom, mTickAndCirclePaint)
                 }
             }
+        }
+
+        private fun drawBatteryBackground(canvas: Canvas, level: Float) {
+            canvas.drawArc(mBatteryOuterRing, 0f, 36 * level, true, mBatteryLevelPaint)
+            canvas.drawArc(mBatteryInnerRing, 0f, 36 * level, true, mBatteryInnerPaint)
         }
 
         private fun drawComplications(canvas: Canvas, currentTimeMillis: Long) {
@@ -479,42 +539,44 @@ class MyWatchFace : CanvasWatchFaceService() {
         }
 
         private fun drawWatchFace(canvas: Canvas) {
-
-            /*
-             * Draw ticks. Usually you will want to bake this directly into the photo, but in
-             * cases where you want to allow users to select their own photos, this dynamically
-             * creates them on top of the photo.
-             */
-            val innerTickRadius = mCenterX - 10
-            val outerTickRadius = mCenterX
-            for (tickIndex in 0..11) {
-                val tickRot = (tickIndex.toDouble() * Math.PI * 2.0 / 12).toFloat()
-                val innerX = Math.sin(tickRot.toDouble()).toFloat() * innerTickRadius
-                val innerY = (-Math.cos(tickRot.toDouble())).toFloat() * innerTickRadius
-                val outerX = Math.sin(tickRot.toDouble()).toFloat() * outerTickRadius
-                val outerY = (-Math.cos(tickRot.toDouble())).toFloat() * outerTickRadius
-                canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
-                        mCenterX + outerX, mCenterY + outerY, mMinutePaint)
-            }
-
+//            /*
+//             * Draw ticks. Usually you will want to bake this directly into the photo, but in
+//             * cases where you want to allow users to select their own photos, this dynamically
+//             * creates them on top of the photo.
+//             */
+//            val innerTickRadius = mCenterX - 10
+//            val outerTickRadius = mCenterX
+//            for (tickIndex in 0..11) {
+//                val tickRot = (tickIndex.toDouble() * Math.PI * 2.0 / 12).toFloat()
+//                val innerX = Math.sin(tickRot.toDouble()).toFloat() * innerTickRadius
+//                val innerY = (-Math.cos(tickRot.toDouble())).toFloat() * innerTickRadius
+//                val outerX = Math.sin(tickRot.toDouble()).toFloat() * outerTickRadius
+//                val outerY = (-Math.cos(tickRot.toDouble())).toFloat() * outerTickRadius
+//                canvas.drawLine(mCenterX + innerX, mCenterY + innerY,
+//                        mCenterX + outerX, mCenterY + outerY, mMinutePaint)
+//            }
+            val s = mCalendar.get(Calendar.SECOND)
+            val m = mCalendar.get(Calendar.MINUTE)
+            val h = mCalendar.get(Calendar.HOUR)
+            val hh = mCalendar.get(Calendar.HOUR_OF_DAY)
             /*
              * These calculations reflect the rotation in degrees per unit of time, e.g.,
              * 360 / 60 = 6 and 360 / 12 = 30.
              */
-            val seconds =
-                    mCalendar.get(Calendar.SECOND) + mCalendar.get(Calendar.MILLISECOND) / 1000f
-            val secondsRotation = seconds * 6f
+            //val seconds =
+            //mCalendar.get(Calendar.SECOND) + mCalendar.get(Calendar.MILLISECOND) / 1000f
+            val secondsRotation = s * 6f
 
-            val minHandOffset = seconds / 10
-            val minutesRotation = mCalendar.get(Calendar.MINUTE) * 6f + minHandOffset
+            val minHandOffset = s / 10
+            val minutesRotation = m * 6f + minHandOffset
 
-            val hourHandOffset = mCalendar.get(Calendar.MINUTE) / 2f
-            val hoursRotation = mCalendar.get(Calendar.HOUR) * 30 + hourHandOffset + seconds / 60
+            val hourHandOffset = m / 2f
+            val hoursRotation = h * 30 + hourHandOffset + s / 60
 
             if (!mAmbient && mEnableDigitalClock) {
                 val bounds = Rect()
-                val hours = String.format("%02d", mCalendar.get(Calendar.HOUR_OF_DAY))
-                val minutes = String.format("%02d", mCalendar.get(Calendar.MINUTE))
+                val hours = String.format("%02d", hh)
+                val minutes = String.format("%02d", m)
                 mTickAndCirclePaint.getTextBounds(hours, 0, hours.length, bounds)
                 canvas.drawText(hours, mCenterX - bounds.width() - 20,
                         mCenterY + bounds.height() / 2, mTickAndCirclePaint)
@@ -528,18 +590,22 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             canvas.rotate(hoursRotation, mCenterX, mCenterY)
             canvas.drawLine(
-                    mCenterX,
-                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS * 4,
-                    mCenterX,
-                    mCenterY - sHourHandLength,
+                    mClockHand[0].left, mClockHand[0].top,
+                    mClockHand[0].right, mClockHand[0].bottom,
+//                    mCenterX,
+//                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS * 4,
+//                    mCenterX,
+//                    mCenterY - sHourHandLength,
                     mHourPaint)
 
             canvas.rotate(minutesRotation - hoursRotation, mCenterX, mCenterY)
             canvas.drawLine(
-                    mCenterX,
-                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS * 2,
-                    mCenterX,
-                    mCenterY - sMinuteHandLength,
+                    mClockHand[1].left, mClockHand[1].top,
+                    mClockHand[1].right, mClockHand[1].bottom,
+//                    mCenterX,
+//                    mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS * 2,
+//                    mCenterX,
+//                    mCenterY - sMinuteHandLength,
                     mMinutePaint)
 
             /*
@@ -549,10 +615,12 @@ class MyWatchFace : CanvasWatchFaceService() {
             if (!mAmbient && mEnableSecondHand) {
                 canvas.rotate(secondsRotation - minutesRotation, mCenterX, mCenterY)
                 canvas.drawLine(
-                        mCenterX,
-                        mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
-                        mCenterX,
-                        mCenterY - mSecondHandLength,
+                        mClockHand[2].left, mClockHand[2].top,
+                        mClockHand[2].right, mClockHand[2].bottom,
+//                        mCenterX,
+//                        mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS,
+//                        mCenterX,
+//                        mCenterY - mSecondHandLength,
                         mSecondPaint)
             }
 //            canvas.drawCircle(
@@ -640,9 +708,6 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs)
             }
         }
-
-//        private lateinit var leftComplicationDrawable: ComplicationDrawable
-//        private lateinit var rightComplicationDrawable: ComplicationDrawable
 
         override fun onComplicationDataUpdate(watchFaceComplicationId: Int, data: ComplicationData?) {
             //Log.d(TAG, "onComplicationDataUpdate $watchFaceComplicationId")
