@@ -607,10 +607,10 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val bounds = Rect()
                 val hours = String.format("%02d", hh)
                 val minutes = String.format("%02d", m)
-                mTickAndCirclePaint.getTextBounds(hours, 0, hours.length, bounds)
+                mDigitalClockPaint.getTextBounds(hours, 0, hours.length, bounds)
                 canvas.drawText(hours, mCenterX - bounds.width() - 20,
                         mCenterY + bounds.height() / 2, mDigitalClockPaint)
-                mTickAndCirclePaint.getTextBounds(minutes, 0, minutes.length, bounds)
+                mDigitalClockPaint.getTextBounds(minutes, 0, minutes.length, bounds)
                 canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2,
                         mDigitalClockPaint)
             }
