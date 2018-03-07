@@ -382,10 +382,12 @@ class MyWatchFace : CanvasWatchFaceService() {
             for (tickIndex in 0..11) {
                 val tickRot = (tickIndex.toDouble() * Math.PI * 2.0 / 12).toFloat()
                 mClockTick[tickIndex].apply {
-                    left = Math.sin(tickRot.toDouble()).toFloat() * innerTickRadius
-                    top = (-Math.cos(tickRot.toDouble())).toFloat() * innerTickRadius
-                    right = Math.sin(tickRot.toDouble()).toFloat() * outerTickRadius
-                    bottom = (-Math.cos(tickRot.toDouble())).toFloat() * outerTickRadius
+                    val tickX = Math.sin(tickRot.toDouble()).toFloat()
+                    val tickY = Math.cos(tickRot.toDouble()).toFloat()
+                    left = mCenterX + tickX * innerTickRadius
+                    top = mCenterY - tickY * innerTickRadius
+                    right = mCenterX + tickX * outerTickRadius
+                    bottom = mCenterY - tickY * outerTickRadius
                 }
             }
 
@@ -527,30 +529,34 @@ class MyWatchFace : CanvasWatchFaceService() {
 //                canvas.drawBitmap(mGrayBackgroundBitmap, 0f, 0f, mBackgroundPaint)
             } else {
 //                canvas.drawBitmap(mBackgroundBitmap, 0f, 0f, mBackgroundPaint)
-                if (mEnableBatteryRing) {
-                    drawBatteryBackground(canvas, mBatteryLevel)
-                }
-                if (mEnableAnalogTick) {//draw ticks
-                    for ((i, t) in mClockTick.withIndex()) {
-                        if (i == 0 && mEnableBatteryText) continue
-                        canvas.drawLine(t.left, t.top, t.right, t.bottom, mHourPaint)
-                    }
-                }
+                drawBatteryBackground(canvas, mBatteryLevel)
+                drawAnalogTicker(canvas)
             }
         }
 
         private fun drawBatteryBackground(canvas: Canvas, level: Float) {
-            canvas.drawArc(mBatteryOuterRing,
-                    if (mEnableBatteryText) 0f else -85f,
-                    if (mEnableBatteryText) 3.6f * level else 3.5f * level,
-                    true, mBatteryLevelPaint)
-            canvas.drawOval(mBatteryInnerRing, mBatteryInnerPaint)
+            if (mEnableBatteryRing) {
+                canvas.drawArc(mBatteryOuterRing,
+                        if (mEnableBatteryText) -85f else 0f,
+                        if (mEnableBatteryText) 3.5f * level else 3.6f * level,
+                        true, mBatteryLevelPaint)
+                canvas.drawOval(mBatteryInnerRing, mBatteryInnerPaint)
+            }
             if (mEnableBatteryText) {
-                val text = level.toInt().toString()
+                val text = if (mEnableBatteryRing) level.toInt().toString() else "${level.toInt()}%"
                 val bounds = Rect()
                 mMinutePaint.getTextBounds(text, 0, text.length, bounds)
                 canvas.drawText(text, mCenterX - bounds.width() / 2,
                         mBatteryOuterRing.top + bounds.height(), mMinutePaint)
+            }
+        }
+
+        private fun drawAnalogTicker(canvas: Canvas) {
+            if (mEnableAnalogTick) {//draw ticks
+                for ((i, t) in mClockTick.withIndex()) {
+                    if (i == 0 && mEnableBatteryText) continue
+                    canvas.drawLine(t.left, t.top, t.right, t.bottom, mHourPaint)
+                }
             }
         }
 
