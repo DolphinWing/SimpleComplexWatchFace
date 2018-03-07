@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <FrameLayout
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_ring"
+        tools:ignore="HardcodedText, RtlHardcoded">
+
+        <ImageView
+            android:id="@+id/icon1"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="left|bottom"
+            android:layout_marginBottom="24dp"
+            android:layout_marginLeft="24dp"
+            android:background="@drawable/bg_ring"
+            android:contentDescription="@null"
+            android:gravity="center_vertical"
+            android:padding="4dp" />
+
+        <ImageView
+            android:id="@+id/icon2"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="bottom|right"
+            android:layout_marginBottom="24dp"
+            android:layout_marginRight="24dp"
+            android:background="@drawable/bg_ring"
+            android:contentDescription="@null"
+            android:gravity="center_vertical"
+            android:padding="4dp" />
+
+        <ImageView
+            android:id="@+id/icon3"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_ring"
+            android:contentDescription="@null"
+            android:gravity="center_vertical"
+            android:padding="4dp" />
+
+    </FrameLayout>
+</FrameLayout>
