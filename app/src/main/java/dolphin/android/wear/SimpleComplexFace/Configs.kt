@@ -39,7 +39,7 @@ class Configs(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_BATTERY_TEXT, value).apply()
 
     var analogTickEnabled: Boolean
-        get() = prefs.getBoolean(KEY_ANALOG_TICK, true)
+        get() = prefs.getBoolean(KEY_ANALOG_TICK, false)
         set(value) = prefs.edit().putBoolean(KEY_ANALOG_TICK, value).apply()
 
     var digitalTimeEnabled: Boolean

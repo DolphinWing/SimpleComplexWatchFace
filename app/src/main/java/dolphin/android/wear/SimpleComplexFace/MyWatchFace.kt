@@ -241,12 +241,14 @@ class MyWatchFace : CanvasWatchFaceService() {
                 //setShadowLayer(
                 //        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
             }
+
             mDigitalClockPaint = Paint().apply {
                 color = Color.argb(120, 128, 128, 128)
                 textSize = 128f
                 strokeWidth = SECOND_TICK_STROKE_WIDTH
                 isAntiAlias = true
                 typeface = Typeface.MONOSPACE
+                isFakeBoldText = true
             }
 
             mBatteryLevelPaint = Paint().apply {
@@ -429,14 +431,16 @@ class MyWatchFace : CanvasWatchFaceService() {
             val verticalOffset = midpointOfScreen - sizeOfComplication / 2
             mComplicationDrawable.get(Configs.COMPLICATION_ID_LEFT).bounds = Rect(
                     horizontalOffset,
-                    verticalOffset + sizeOfComplication,
-                    horizontalOffset + sizeOfComplication,
-                    verticalOffset + sizeOfComplication * 2)
+                    (verticalOffset + sizeOfComplication),
+                    (horizontalOffset + sizeOfComplication),
+                    (verticalOffset + sizeOfComplication * 2)
+            )
             mComplicationDrawable.get(Configs.COMPLICATION_ID_RIGHT).bounds = Rect(
-                    horizontalOffset + midpointOfScreen,
-                    verticalOffset + sizeOfComplication,
-                    horizontalOffset + midpointOfScreen + sizeOfComplication,
-                    verticalOffset + sizeOfComplication * 2)
+                    (horizontalOffset + midpointOfScreen),
+                    (verticalOffset + sizeOfComplication),
+                    (horizontalOffset + midpointOfScreen + sizeOfComplication),
+                    (verticalOffset + sizeOfComplication * 2)
+            )
 //            mComplicationDrawable.get(BACKGROUND_COMPLICATION).bounds = Rect(
 //                    0, 0, width, height
 //            )
@@ -447,9 +451,9 @@ class MyWatchFace : CanvasWatchFaceService() {
                     (verticalOffset + sizeOfComplication * 2.5f).toInt())
             mComplicationDrawable.get(Configs.COMPLICATION_ID_TOP).bounds = Rect(
                     horizontalOffset,
-                    verticalOffset - sizeOfComplication * 2,
-                    horizontalOffset + midpointOfScreen + sizeOfComplication,
-                    verticalOffset - sizeOfComplication
+                    (verticalOffset - sizeOfComplication * 1.05f).toInt(),
+                    (horizontalOffset + midpointOfScreen + sizeOfComplication),
+                    (verticalOffset - sizeOfComplication * 0.05f).toInt()
             )
 
 //            /* Scale loaded background image (more efficient) if surface dimensions change. */

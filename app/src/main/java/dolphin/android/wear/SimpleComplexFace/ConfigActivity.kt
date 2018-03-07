@@ -146,7 +146,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                         watchFaceComplicationId,
                         ComplicationData.TYPE_SHORT_TEXT,
                         ComplicationData.TYPE_SMALL_IMAGE,
-                        ComplicationData.TYPE_ICON),
+                        ComplicationData.TYPE_ICON
+                ),
                 watchFaceComplicationId)
     }
 
@@ -296,19 +297,25 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         private fun launchComplicationChooser(watchFaceComplicationId: Int) {
             val watchFace = ComponentName(activity, MyWatchFace::class.java)
             val types = when (watchFaceComplicationId) {
-                Configs.COMPLICATION_ID_TOP ->
-                    ComplicationData.TYPE_ICON + ComplicationData.TYPE_RANGED_VALUE +
-                            ComplicationData.TYPE_LONG_TEXT + //ComplicationData.TYPE_LARGE_IMAGE +
-                            ComplicationData.TYPE_SHORT_TEXT + ComplicationData.TYPE_SMALL_IMAGE
-                else -> ComplicationData.TYPE_ICON +
-                        ComplicationData.TYPE_LARGE_IMAGE + ComplicationData.TYPE_LONG_TEXT
+                Configs.COMPLICATION_ID_TOP -> intArrayOf(ComplicationData.TYPE_ICON,
+                        //ComplicationData.TYPE_LARGE_IMAGE,
+                        ComplicationData.TYPE_RANGED_VALUE,
+                        ComplicationData.TYPE_LONG_TEXT,
+                        ComplicationData.TYPE_SHORT_TEXT,
+                        ComplicationData.TYPE_SMALL_IMAGE)
+                else -> intArrayOf(//ComplicationData.TYPE_ICON,
+                        //ComplicationData.TYPE_LARGE_IMAGE,
+                        ComplicationData.TYPE_RANGED_VALUE,
+                        //ComplicationData.TYPE_LONG_TEXT,
+                        ComplicationData.TYPE_SHORT_TEXT,
+                        ComplicationData.TYPE_SMALL_IMAGE)
             }
             activity.startActivityForResult(
                     ComplicationHelperActivity.createProviderChooserHelperIntent(
                             activity,
                             watchFace,
                             watchFaceComplicationId,
-                            types),
+                            *types),
                     watchFaceComplicationId)
         }
     }
