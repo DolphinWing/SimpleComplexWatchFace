@@ -1,4 +1,6 @@
-package android.avermedia.com.myfirstwear
+@file:Suppress("PackageName")
+
+package dolphin.android.wear.SimpleComplexFace
 
 import android.content.*
 import android.graphics.*
@@ -41,10 +43,10 @@ private const val SHADOW_RADIUS = 6f
 
 private const val TAG = "MyWatchFace"
 
-private const val BACKGROUND_COMPLICATION = 9000
-private const val LEFT_COMPLICATION = 9001
-private const val RIGHT_COMPLICATION = 9002
-private const val BOTTOM_COMPLICATION = 9003
+//private const val BACKGROUND_COMPLICATION = 9000
+//private const val LEFT_COMPLICATION = 9001
+//private const val RIGHT_COMPLICATION = 9002
+//private const val BOTTOM_COMPLICATION = 9003
 
 /**
  * Analog watch face with a ticking second hand. In ambient mode, the second hand isn't
@@ -69,19 +71,18 @@ class MyWatchFace : CanvasWatchFaceService() {
         private val mWeakReference: WeakReference<MyWatchFace.Engine> = WeakReference(reference)
 
         override fun handleMessage(msg: Message) {
-            val engine = mWeakReference.get()
-            if (engine != null) {
+            mWeakReference.get()?.let {
                 when (msg.what) {
-                    MSG_UPDATE_TIME -> engine.handleUpdateTimeMessage()
+                    MSG_UPDATE_TIME -> it.handleUpdateTimeMessage()
                 }
             }
         }
     }
 
-    inner class Engine() : CanvasWatchFaceService.Engine() {
+    inner class Engine : CanvasWatchFaceService.Engine() {
 
         private lateinit var mCalendar: Calendar
-        private lateinit var mSharedPref: SharedPreferences
+        private lateinit var mConfigs: Configs
 
         private var mRegisteredTimeZoneReceiver = false
         private var mMuteMode: Boolean = false
@@ -105,8 +106,8 @@ class MyWatchFace : CanvasWatchFaceService() {
         private lateinit var mBatteryInnerPaint: Paint
 
         private lateinit var mBackgroundPaint: Paint
-        //        private lateinit var mBackgroundBitmap: Bitmap
-//        private lateinit var mGrayBackgroundBitmap: Bitmap
+        //private lateinit var mBackgroundBitmap: Bitmap
+        //private lateinit var mGrayBackgroundBitmap: Bitmap
         private val mComplicationDrawable = SparseArray<ComplicationDrawable>()
         private var mBatteryLevel = 0f
 
@@ -138,11 +139,11 @@ class MyWatchFace : CanvasWatchFaceService() {
                     .build())
 
             mCalendar = Calendar.getInstance()
-            mSharedPref = PreferenceManager.getDefaultSharedPreferences(applicationContext)
-            mEnableBatteryLevel = mSharedPref.getBoolean("battery", mEnableBatteryLevel)
-            mEnableDigitalClock = mSharedPref.getBoolean("digital", mEnableDigitalClock)
-            mEnableSecondHand = mSharedPref.getBoolean("second", mEnableSecondHand)
-            mEnableTap = mSharedPref.getBoolean("tap", mEnableTap)
+            mConfigs = Configs(applicationContext)
+            mEnableBatteryLevel = mConfigs.batteryRingEnabled
+            mEnableDigitalClock = mConfigs.digitalTimeEnabled
+            mEnableSecondHand = mConfigs.secondHandEnabled
+            mEnableTap = mConfigs.tapComplicationEnabled
 
             initializeComplicationsAndBackground()
             initializeWatchFace()
@@ -164,18 +165,22 @@ class MyWatchFace : CanvasWatchFaceService() {
 //                }
 //            }
 
-            setDefaultSystemComplicationProvider(BACKGROUND_COMPLICATION,
+            setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_BACKGROUND,
                     SystemProviders.WATCH_BATTERY, ComplicationData.TYPE_RANGED_VALUE)
-            setDefaultSystemComplicationProvider(LEFT_COMPLICATION, SystemProviders.DATE,
-                    ComplicationData.TYPE_SHORT_TEXT)
-            setDefaultSystemComplicationProvider(RIGHT_COMPLICATION, SystemProviders.STEP_COUNT,
-                    ComplicationData.TYPE_SHORT_TEXT)
-            mComplicationDrawable.put(BOTTOM_COMPLICATION, ComplicationDrawable(applicationContext))
-            mComplicationDrawable.put(LEFT_COMPLICATION, ComplicationDrawable(applicationContext))
-            mComplicationDrawable.put(RIGHT_COMPLICATION, ComplicationDrawable(applicationContext))
+            setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_LEFT,
+                    SystemProviders.DATE, ComplicationData.TYPE_SHORT_TEXT)
+            setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_RIGHT,
+                    SystemProviders.STEP_COUNT, ComplicationData.TYPE_SHORT_TEXT)
+            mComplicationDrawable.put(Configs.COMPLICATION_ID_BOTTOM,
+                    ComplicationDrawable(applicationContext))
+            mComplicationDrawable.put(Configs.COMPLICATION_ID_LEFT,
+                    ComplicationDrawable(applicationContext))
+            mComplicationDrawable.put(Configs.COMPLICATION_ID_RIGHT,
+                    ComplicationDrawable(applicationContext))
             setComplicationsActiveAndAmbientColors(Color.DKGRAY)
-            setActiveComplications(LEFT_COMPLICATION, RIGHT_COMPLICATION, BOTTOM_COMPLICATION,
-                    BACKGROUND_COMPLICATION)
+            setActiveComplications(Configs.COMPLICATION_ID_BACKGROUND,
+                    Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
+                    Configs.COMPLICATION_ID_BOTTOM)
         }
 
         private fun initializeWatchFace() {
@@ -248,10 +253,10 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mComplicationDrawable.valueAt(i).setBurnInProtection(mBurnInProtection)
             }
             //Toast.makeText(applicationContext, "onPropertiesChanged", Toast.LENGTH_SHORT).show()
-            mEnableBatteryLevel = mSharedPref.getBoolean("battery", mEnableBatteryLevel)
-            mEnableDigitalClock = mSharedPref.getBoolean("digital", mEnableDigitalClock)
-            mEnableSecondHand = mSharedPref.getBoolean("second", mEnableSecondHand)
-            mEnableTap = mSharedPref.getBoolean("tap", mEnableTap)
+            mEnableBatteryLevel = mConfigs.batteryRingEnabled
+            mEnableDigitalClock = mConfigs.digitalTimeEnabled
+            mEnableSecondHand = mConfigs.secondHandEnabled
+            mEnableTap = mConfigs.tapComplicationEnabled
         }
 
         override fun onTimeTick() {
@@ -353,12 +358,12 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             val horizontalOffset = (midpointOfScreen - sizeOfComplication) / 2
             val verticalOffset = midpointOfScreen - sizeOfComplication / 2
-            mComplicationDrawable.get(LEFT_COMPLICATION).bounds = Rect(
+            mComplicationDrawable.get(Configs.COMPLICATION_ID_LEFT).bounds = Rect(
                     horizontalOffset,
                     verticalOffset + sizeOfComplication,
                     horizontalOffset + sizeOfComplication,
                     verticalOffset + sizeOfComplication * 2)
-            mComplicationDrawable.get(RIGHT_COMPLICATION).bounds = Rect(
+            mComplicationDrawable.get(Configs.COMPLICATION_ID_RIGHT).bounds = Rect(
                     horizontalOffset + midpointOfScreen,
                     verticalOffset + sizeOfComplication,
                     horizontalOffset + midpointOfScreen + sizeOfComplication,
@@ -366,7 +371,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 //            mComplicationDrawable.get(BACKGROUND_COMPLICATION).bounds = Rect(
 //                    0, 0, width, height
 //            )
-            mComplicationDrawable.get(BOTTOM_COMPLICATION).bounds = Rect(
+            mComplicationDrawable.get(Configs.COMPLICATION_ID_BOTTOM).bounds = Rect(
                     (mCenterX - sizeOfComplication / 2).toInt(),
                     (verticalOffset + sizeOfComplication * 1.5f).toInt(),
                     (mCenterX + sizeOfComplication / 2).toInt(),
@@ -642,7 +647,7 @@ class MyWatchFace : CanvasWatchFaceService() {
         override fun onComplicationDataUpdate(watchFaceComplicationId: Int, data: ComplicationData?) {
             //Log.d(TAG, "onComplicationDataUpdate $watchFaceComplicationId")
             //super.onComplicationDataUpdate(watchFaceComplicationId, data)
-            if (watchFaceComplicationId == BACKGROUND_COMPLICATION) {
+            if (watchFaceComplicationId == Configs.COMPLICATION_ID_BACKGROUND) {
                 Log.d(TAG, " type: ${data?.type}")
                 Log.d(TAG, "value: ${data?.value}")
                 Log.d(TAG, "  min: ${data?.minValue}")

@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">MyFirstWear</string>
+    <string name="app_name">Simply Complex</string>
     <string name="message">Watch face tapped</string>
-    <string name="my_analog_name">My Analog</string>
+    <string name="my_face_name">Simply Complex</string>
     <string name="title_activity_config">ConfigActivity</string>
     <!--
     This string is used for square devices and overridden by hello_world in

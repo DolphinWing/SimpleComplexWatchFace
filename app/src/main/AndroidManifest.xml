@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="android.avermedia.com.myfirstwear">
+    package="dolphin.android.wear.SimpleComplexFace">
 
     <uses-feature android:name="android.hardware.type.watch" />
 
@@ -21,7 +21,7 @@
 
         <service
             android:name=".MyWatchFace"
-            android:label="@string/my_analog_name"
+            android:label="@string/my_face_name"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data
                 android:name="android.service.wallpaper"

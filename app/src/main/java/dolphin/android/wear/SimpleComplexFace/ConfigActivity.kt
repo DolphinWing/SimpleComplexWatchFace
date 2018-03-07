@@ -1,10 +1,13 @@
-package android.avermedia.com.myfirstwear
+@file:Suppress("PackageName", "PrivatePropertyName")
+
+package dolphin.android.wear.SimpleComplexFace
 
 import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageInfo
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
@@ -28,7 +31,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
     private var mMyAdapter: MyAdapter? = null
     private lateinit var mWatchFaceComponentName: ComponentName
     private lateinit var mProviderInfoRetriever: ProviderInfoRetriever
-    private lateinit var mSharedPref: SharedPreferences
+    private lateinit var mConfigs: Configs
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +42,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         setAmbientEnabled()
 
         mWatchFaceComponentName = ComponentName(this, MyWatchFace::class.java)
-        mSharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        mConfigs = Configs(this)
 
         mWearableRecyclerView = findViewById(R.id.recycler_config_view)
         mWearableRecyclerView?.let {
@@ -55,19 +58,19 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         findViewById<View>(R.id.icon3)?.setOnClickListener(this)
         findViewById<CheckBox>(R.id.checkbox1)?.let {
             it.setOnCheckedChangeListener(this)
-            it.isChecked = mSharedPref.getBoolean("second", true)
+            it.isChecked = mConfigs.secondHandEnabled
         }
         findViewById<CheckBox>(R.id.checkbox2)?.let {
             it.setOnCheckedChangeListener(this)
-            it.isChecked = mSharedPref.getBoolean("battery", true)
+            it.isChecked = mConfigs.batteryRingEnabled
         }
         findViewById<CheckBox>(R.id.checkbox3)?.let {
             it.setOnCheckedChangeListener(this)
-            it.isChecked = mSharedPref.getBoolean("digital", true)
+            it.isChecked = mConfigs.digitalTimeEnabled
         }
         findViewById<CheckBox>(R.id.checkbox4)?.let {
             it.setOnCheckedChangeListener(this)
-            it.isChecked = mSharedPref.getBoolean("tap", false)
+            it.isChecked = mConfigs.tapComplicationEnabled
         }
 
         mProviderInfoRetriever = ProviderInfoRetriever(this, Executors.newSingleThreadExecutor())
@@ -77,7 +80,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                 updateComplicationViews(complicationId, providerInfo)
             }
 
-        }, mWatchFaceComponentName, 9001, 9002, 9003)
+        }, mWatchFaceComponentName,
+                Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT, Configs.COMPLICATION_ID_BOTTOM)
     }
 
     override fun onDestroy() {
@@ -92,7 +96,6 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 //        private var mProgressToCenter: Float = 0.toFloat()
 
         override fun onLayoutFinished(child: View, parent: RecyclerView) {
-
 //            // Figure out % progress from top to bottom
 //            val centerOffset = child.height.toFloat() / 2.0f / parent.height.toFloat()
 //            val yRelativeToCenterOffset = child.y / parent.height + centerOffset
@@ -106,20 +109,21 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 //            child.scaleY = 1 - mProgressToCenter
         }
     }
+
     override fun onClick(view: View?) {
         when (view?.id) {
-            R.id.icon1 -> launchComplicationChooser(9001)
-            R.id.icon2 -> launchComplicationChooser(9002)
-            R.id.icon3 -> launchComplicationChooser(9003)
+            R.id.icon1 -> launchComplicationChooser(Configs.COMPLICATION_ID_LEFT)
+            R.id.icon2 -> launchComplicationChooser(Configs.COMPLICATION_ID_RIGHT)
+            R.id.icon3 -> launchComplicationChooser(Configs.COMPLICATION_ID_BOTTOM)
         }
     }
 
     override fun onCheckedChanged(view: CompoundButton?, checked: Boolean) {
         when (view?.id) {
-            R.id.checkbox1 -> mSharedPref.edit().putBoolean("second", checked).apply()
-            R.id.checkbox2 -> mSharedPref.edit().putBoolean("battery", checked).apply()
-            R.id.checkbox3 -> mSharedPref.edit().putBoolean("digital", checked).apply()
-            R.id.checkbox4 -> mSharedPref.edit().putBoolean("tap", checked).apply()
+            R.id.checkbox1 -> mConfigs.secondHandEnabled = checked
+            R.id.checkbox2 -> mConfigs.batteryRingEnabled = checked
+            R.id.checkbox3 -> mConfigs.digitalTimeEnabled = checked
+            R.id.checkbox4 -> mConfigs.tapComplicationEnabled = checked
         }
     }
 
@@ -140,7 +144,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         Log.d(TAG, "onActivityResult: $requestCode $resultCode")
         if (resultCode == Activity.RESULT_OK)
             when (requestCode) {
-                9001, 9002, 9003 -> {
+                Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
+                Configs.COMPLICATION_ID_BOTTOM -> {
                     // Retrieves information for selected Complication provider.
                     val complicationProviderInfo = data?.getParcelableExtra<ComplicationProviderInfo>(ProviderChooserIntent.EXTRA_PROVIDER_INFO)
                     Log.d(TAG, "Provider: $complicationProviderInfo")
@@ -155,9 +160,9 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         mMyAdapter?.updateComplicationViews(watchFaceComplicationId, complicationProviderInfo)
 
         val iconId = when (watchFaceComplicationId) {
-            9001 -> R.id.icon1
-            9002 -> R.id.icon2
-            9003 -> R.id.icon3
+            Configs.COMPLICATION_ID_LEFT -> R.id.icon1
+            Configs.COMPLICATION_ID_RIGHT -> R.id.icon2
+            Configs.COMPLICATION_ID_BOTTOM -> R.id.icon3
             else -> 0
         }
         complicationProviderInfo?.let {
@@ -189,7 +194,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             return TextHolder(inflater.inflate(R.layout.holder_clock, parent, false))
         }
 
-        override fun getItemCount(): Int = 5
+        override fun getItemCount(): Int = 6
 
         override fun getItemViewType(position: Int): Int = when (position) {
             0 -> TYPE_CLOCK
@@ -208,6 +213,11 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                         switch.isChecked = prefs.getBoolean(SWITCH_TEXT[position], false)
                         text.text = SWITCH_TEXT[position]
                     }
+                }
+                5 -> {
+                    val pInfo: PackageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
+                    val textHolder = holder as TextHolder
+                    textHolder.text.text = pInfo.versionName
                 }
             }
         }
@@ -232,9 +242,9 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 
         override fun onClick(view: View?) {
             when (view?.id) {
-                R.id.icon1 -> launchComplicationChooser(9001)
-                R.id.icon2 -> launchComplicationChooser(9002)
-                R.id.icon3 -> launchComplicationChooser(9003)
+                R.id.icon1 -> launchComplicationChooser(Configs.COMPLICATION_ID_LEFT)
+                R.id.icon2 -> launchComplicationChooser(Configs.COMPLICATION_ID_RIGHT)
+                R.id.icon3 -> launchComplicationChooser(Configs.COMPLICATION_ID_BOTTOM)
             }
         }
 
@@ -242,9 +252,9 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                                     complicationProviderInfo: ComplicationProviderInfo?) {
             complicationProviderInfo?.let {
                 when (watchFaceComplicationId) {
-                    9001 -> icon1.setImageIcon(it.providerIcon)
-                    9002 -> icon2.setImageIcon(it.providerIcon)
-                    9003 -> icon3.setImageIcon(it.providerIcon)
+                    Configs.COMPLICATION_ID_LEFT -> icon1.setImageIcon(it.providerIcon)
+                    Configs.COMPLICATION_ID_RIGHT -> icon2.setImageIcon(it.providerIcon)
+                    Configs.COMPLICATION_ID_BOTTOM -> icon3.setImageIcon(it.providerIcon)
                 }
             }
         }
@@ -264,7 +274,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 
     class SwitchHolder(context: Context, view: View) : RecyclerView.ViewHolder(view),
             CompoundButton.OnCheckedChangeListener {
-        private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        private val configs = Configs(context)
         var switch: Switch = view.findViewById(android.R.id.checkbox)
         var text: TextView = view.findViewById(android.R.id.title)
 
@@ -274,15 +284,15 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 
         override fun onCheckedChanged(button: CompoundButton?, checked: Boolean) {
             when (button?.tag) {
-                "1", 1 -> prefs.edit().putBoolean("second", checked).apply()
-                "2", 2 -> prefs.edit().putBoolean("battery", checked).apply()
-                "3", 3 -> prefs.edit().putBoolean("digital", checked).apply()
-                "4", 4 -> prefs.edit().putBoolean("tap", checked).apply()
+                "1", 1 -> configs.secondHandEnabled = checked
+                "2", 2 -> configs.batteryRingEnabled = checked
+                "3", 3 -> configs.digitalTimeEnabled = checked
+                "4", 4 -> configs.tapComplicationEnabled = checked
             }
         }
     }
 
     class TextHolder(view: View) : RecyclerView.ViewHolder(view) {
-
+        var text: TextView = view.findViewById(android.R.id.title)
     }
 }
