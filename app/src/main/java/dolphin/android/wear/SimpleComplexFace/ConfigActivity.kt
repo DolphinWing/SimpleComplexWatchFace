@@ -179,7 +179,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         }
 
         private var mClockHolder: ClockHolder? = null
-        private val prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        private val configs = Configs(activity)
 
         override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): RecyclerView.ViewHolder {
             val inflater = LayoutInflater.from(parent?.context)
@@ -191,7 +191,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                 TYPE_SWITCH ->
                     return SwitchHolder(activity, inflater.inflate(R.layout.holder_switch, parent, false))
             }
-            return TextHolder(inflater.inflate(R.layout.holder_clock, parent, false))
+            return TextHolder(inflater.inflate(R.layout.holder_text, parent, false))
         }
 
         override fun getItemCount(): Int = 6
@@ -202,22 +202,38 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             else -> TYPE_TEXT
         }
 
-        private val SWITCH_TEXT = arrayListOf("clock", "second", "battery", "digital", "tap")
+        //private val SWITCH_TEXT = arrayListOf("clock", "second", "battery", "digital", "tap")
+
+        private fun getItemValue(position: Int): Any? = when (position) {
+            1 -> configs.secondHandEnabled
+            2 -> configs.batteryRingEnabled
+            3 -> configs.digitalTimeEnabled
+            4 -> configs.tapComplicationEnabled
+            else -> null
+        }
+
+        private fun getItemTitle(position: Int): String? = when (position) {
+            1 -> activity.getString(R.string.config_title_second_hand)
+            2 -> activity.getString(R.string.config_title_battery_ring)
+            3 -> activity.getString(R.string.config_title_digital_time)
+            4 -> activity.getString(R.string.config_title_enable_tap)
+            else -> null
+        }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder?, position: Int) {
             when (position) {
                 in 1..4 -> {
-                    val switchHolder = holder as SwitchHolder
-                    switchHolder.apply {
+                    //val switchHolder = holder as SwitchHolder
+                    (holder as SwitchHolder).apply {
                         switch.tag = position
-                        switch.isChecked = prefs.getBoolean(SWITCH_TEXT[position], false)
-                        text.text = SWITCH_TEXT[position]
+                        switch.isChecked = getItemValue(position) as Boolean
+                        text.text = getItemTitle(position)
                     }
                 }
                 5 -> {
                     val pInfo: PackageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
-                    val textHolder = holder as TextHolder
-                    textHolder.text.text = pInfo.versionName
+                    //val textHolder = holder as TextHolder
+                    (holder as TextHolder).text.text = pInfo.versionName
                 }
             }
         }

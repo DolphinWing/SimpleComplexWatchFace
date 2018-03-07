@@ -2,7 +2,13 @@
     <string name="app_name">Simply Complex</string>
     <string name="message">Watch face tapped</string>
     <string name="my_face_name">Simply Complex</string>
-    <string name="title_activity_config">ConfigActivity</string>
+    <string name="title_activity_config">Configuration</string>
+
+    <string name="config_title_second_hand">Second hand</string>
+    <string name="config_title_battery_ring">Battery ring</string>
+    <string name="config_title_digital_time">Digital time</string>
+    <string name="config_title_enable_tap">Tap action</string>
+
     <!--
     This string is used for square devices and overridden by hello_world in
     values-round/strings.xml for round devices.
