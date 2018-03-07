@@ -232,7 +232,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             mTickAndCirclePaint = Paint().apply {
                 color = mWatchHandColor
-                textSize = 128f
+                //textSize = 128f
                 strokeWidth = SECOND_TICK_STROKE_WIDTH
                 isAntiAlias = true
                 style = Paint.Style.STROKE
@@ -391,7 +391,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 }
             }
 
-            mTickAndCirclePaint.textSize = mCenterX / 2 + 20
+            mDigitalClockPaint.textSize = mCenterX / 2 + 20
 
             /*
              * Calculate lengths of different hands based on watch screen size.
