@@ -6,10 +6,8 @@ import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageInfo
 import android.os.Bundle
-import android.preference.PreferenceManager
 import android.support.v7.widget.RecyclerView
 import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
@@ -25,6 +23,17 @@ import java.util.concurrent.Executors
 class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.OnCheckedChangeListener {
     companion object {
         private const val TAG = "ConfigActivity"
+
+        private const val ITEM_COMPLICATION = 0
+        private const val ITEM_SECOND_HAND = 1
+        private const val ITEM_BATTERY_RING = 2
+        private const val ITEM_BATTERY_TEXT = 3
+        private const val ITEM_ANALOG_TICKER = 4
+        private const val ITEM_DIGITAL_TIME = 5
+        private const val ITEM_TAP_RESPONSE = 6
+        private const val ITEM_VERSION = 7
+
+        private const val ITEM_SIZE = ITEM_VERSION + 1
     }
 
     private var mWearableRecyclerView: WearableRecyclerView? = null
@@ -135,7 +144,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                         mWatchFaceComponentName,
                         watchFaceComplicationId,
                         ComplicationData.TYPE_SHORT_TEXT,
-                        ComplicationData.TYPE_SMALL_IMAGE),
+                        ComplicationData.TYPE_SMALL_IMAGE,
+                        ComplicationData.TYPE_ICON),
                 watchFaceComplicationId)
     }
 
@@ -194,35 +204,37 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             return TextHolder(inflater.inflate(R.layout.holder_text, parent, false))
         }
 
-        override fun getItemCount(): Int = 6
+        override fun getItemCount(): Int = ITEM_SIZE
 
         override fun getItemViewType(position: Int): Int = when (position) {
-            0 -> TYPE_CLOCK
-            in 1..4 -> TYPE_SWITCH
+            ITEM_COMPLICATION -> TYPE_CLOCK
+            in 1..6 -> TYPE_SWITCH
             else -> TYPE_TEXT
         }
 
-        //private val SWITCH_TEXT = arrayListOf("clock", "second", "battery", "digital", "tap")
-
         private fun getItemValue(position: Int): Any? = when (position) {
-            1 -> configs.secondHandEnabled
-            2 -> configs.batteryRingEnabled
-            3 -> configs.digitalTimeEnabled
-            4 -> configs.tapComplicationEnabled
+            ITEM_SECOND_HAND -> configs.secondHandEnabled
+            ITEM_BATTERY_RING -> configs.batteryRingEnabled
+            ITEM_BATTERY_TEXT -> configs.batteryTextEnabled
+            ITEM_ANALOG_TICKER -> configs.analogTickEnabled
+            ITEM_DIGITAL_TIME -> configs.digitalTimeEnabled
+            ITEM_TAP_RESPONSE -> configs.tapComplicationEnabled
             else -> null
         }
 
         private fun getItemTitle(position: Int): String? = when (position) {
-            1 -> activity.getString(R.string.config_title_second_hand)
-            2 -> activity.getString(R.string.config_title_battery_ring)
-            3 -> activity.getString(R.string.config_title_digital_time)
-            4 -> activity.getString(R.string.config_title_enable_tap)
+            ITEM_SECOND_HAND -> activity.getString(R.string.config_title_second_hand)
+            ITEM_BATTERY_RING -> activity.getString(R.string.config_title_battery_ring)
+            ITEM_BATTERY_TEXT -> activity.getString(R.string.config_title_battery_text)
+            ITEM_ANALOG_TICKER -> activity.getString(R.string.config_title_analog_tick)
+            ITEM_DIGITAL_TIME -> activity.getString(R.string.config_title_digital_time)
+            ITEM_TAP_RESPONSE -> activity.getString(R.string.config_title_enable_tap)
             else -> null
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder?, position: Int) {
             when (position) {
-                in 1..4 -> {
+                in 1..6 -> {
                     //val switchHolder = holder as SwitchHolder
                     (holder as SwitchHolder).apply {
                         switch.tag = position
@@ -230,7 +242,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                         text.text = getItemTitle(position)
                     }
                 }
-                5 -> {
+                ITEM_VERSION -> {
                     val pInfo: PackageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
                     //val textHolder = holder as TextHolder
                     (holder as TextHolder).text.text = pInfo.versionName
@@ -300,10 +312,18 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 
         override fun onCheckedChanged(button: CompoundButton?, checked: Boolean) {
             when (button?.tag) {
-                "1", 1 -> configs.secondHandEnabled = checked
-                "2", 2 -> configs.batteryRingEnabled = checked
-                "3", 3 -> configs.digitalTimeEnabled = checked
-                "4", 4 -> configs.tapComplicationEnabled = checked
+                ITEM_SECOND_HAND, ITEM_SECOND_HAND.toString() ->
+                    configs.secondHandEnabled = checked
+                ITEM_BATTERY_RING, ITEM_BATTERY_RING.toString() ->
+                    configs.batteryRingEnabled = checked
+                ITEM_BATTERY_TEXT, ITEM_BATTERY_TEXT.toString() ->
+                    configs.batteryTextEnabled = checked
+                ITEM_ANALOG_TICKER, ITEM_ANALOG_TICKER.toString() ->
+                    configs.analogTickEnabled = checked
+                ITEM_DIGITAL_TIME, ITEM_DIGITAL_TIME.toString() ->
+                    configs.digitalTimeEnabled = checked
+                ITEM_TAP_RESPONSE, ITEM_TAP_RESPONSE.toString() ->
+                    configs.tapComplicationEnabled = checked
             }
         }
     }

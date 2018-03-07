@@ -91,7 +91,7 @@ class MyWatchFace : CanvasWatchFaceService() {
         private var mCenterX: Float = 0F
         private var mCenterY: Float = 0F
 
-//        private var mSecondHandLength: Float = 0F
+        //        private var mSecondHandLength: Float = 0F
 //        private var sMinuteHandLength: Float = 0F
 //        private var sHourHandLength: Float = 0F
         private val mBatteryInnerRing = RectF()
@@ -109,6 +109,7 @@ class MyWatchFace : CanvasWatchFaceService() {
         private lateinit var mMinutePaint: Paint
         private lateinit var mSecondPaint: Paint
         private lateinit var mTickAndCirclePaint: Paint
+        private lateinit var mDigitalClockPaint: Paint
         private lateinit var mBatteryLevelPaint: Paint
         private lateinit var mBatteryInnerPaint: Paint
 
@@ -121,10 +122,12 @@ class MyWatchFace : CanvasWatchFaceService() {
         private var mAmbient: Boolean = false
         private var mLowBitAmbient: Boolean = false
         private var mBurnInProtection: Boolean = false
-        private var mEnableBatteryLevel = true
-        private var mEnableTap = false
         private var mEnableSecondHand = true
+        private var mEnableBatteryRing = true
+        private var mEnableBatteryText = false
+        private var mEnableAnalogTick = true
         private var mEnableDigitalClock = true
+        private var mEnableTapResponse = false
 
         /* Handler to update the time once a second in interactive mode. */
         private val mUpdateTimeHandler = EngineHandler(this)
@@ -147,10 +150,12 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             mCalendar = Calendar.getInstance()
             mConfigs = Configs(applicationContext)
-            mEnableBatteryLevel = mConfigs.batteryRingEnabled
-            mEnableDigitalClock = mConfigs.digitalTimeEnabled
             mEnableSecondHand = mConfigs.secondHandEnabled
-            mEnableTap = mConfigs.tapComplicationEnabled
+            mEnableBatteryRing = mConfigs.batteryRingEnabled
+            mEnableBatteryText = mConfigs.batteryTextEnabled
+            mEnableAnalogTick = mConfigs.analogTickEnabled
+            mEnableDigitalClock = mConfigs.digitalTimeEnabled
+            mEnableTapResponse = mConfigs.tapComplicationEnabled
 
             initializeComplicationsAndBackground()
             initializeWatchFace()
@@ -226,14 +231,20 @@ class MyWatchFace : CanvasWatchFaceService() {
             }
 
             mTickAndCirclePaint = Paint().apply {
-                color = Color.argb(120, 128, 128, 128) //mWatchHandColor
+                color = mWatchHandColor
                 textSize = 128f
                 strokeWidth = SECOND_TICK_STROKE_WIDTH
                 isAntiAlias = true
-                //style = Paint.Style.STROKE
+                style = Paint.Style.STROKE
+                //setShadowLayer(
+                //        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+            }
+            mDigitalClockPaint = Paint().apply {
+                color = Color.argb(120, 128, 128, 128)
+                textSize = 128f
+                strokeWidth = SECOND_TICK_STROKE_WIDTH
+                isAntiAlias = true
                 typeface = Typeface.MONOSPACE
-                setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
             }
 
             mBatteryLevelPaint = Paint().apply {
@@ -262,10 +273,12 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mComplicationDrawable.valueAt(i).setBurnInProtection(mBurnInProtection)
             }
             //Toast.makeText(applicationContext, "onPropertiesChanged", Toast.LENGTH_SHORT).show()
-            mEnableBatteryLevel = mConfigs.batteryRingEnabled
+            mEnableBatteryRing = mConfigs.batteryRingEnabled
             mEnableDigitalClock = mConfigs.digitalTimeEnabled
+            mEnableBatteryText = mConfigs.batteryTextEnabled
+            mEnableAnalogTick = mConfigs.analogTickEnabled
             mEnableSecondHand = mConfigs.secondHandEnabled
-            mEnableTap = mConfigs.tapComplicationEnabled
+            mEnableTapResponse = mConfigs.tapComplicationEnabled
         }
 
         override fun onTimeTick() {
@@ -303,8 +316,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mHourPaint.clearShadowLayer()
                 mMinutePaint.clearShadowLayer()
                 mSecondPaint.clearShadowLayer()
-                mTickAndCirclePaint.clearShadowLayer()
-
+                //mTickAndCirclePaint.clearShadowLayer()
             } else {
                 mHourPaint.color = mWatchHandColor
                 mMinutePaint.color = mWatchHandColor
@@ -322,8 +334,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                         SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
                 mSecondPaint.setShadowLayer(
                         SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
-                mTickAndCirclePaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                //mTickAndCirclePaint.setShadowLayer(
+                //        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
             }
         }
 
@@ -480,7 +492,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 }
                 WatchFaceService.TAP_TYPE_TAP -> {
                     // The user has completed the tap gesture.
-                    if (mEnableTap) {
+                    if (mEnableTapResponse) {
                         for (i in 0 until mComplicationDrawable.size()) {
                             if (mComplicationDrawable.valueAt(i).onTap(x, y)) {
                                 return
@@ -515,19 +527,31 @@ class MyWatchFace : CanvasWatchFaceService() {
 //                canvas.drawBitmap(mGrayBackgroundBitmap, 0f, 0f, mBackgroundPaint)
             } else {
 //                canvas.drawBitmap(mBackgroundBitmap, 0f, 0f, mBackgroundPaint)
-                if (mEnableBatteryLevel) {
+                if (mEnableBatteryRing) {
                     drawBatteryBackground(canvas, mBatteryLevel)
                 }
-                //draw ticks
-                for (t in mClockTick) {
-                    canvas.drawLine(t.left, t.top, t.right, t.bottom, mTickAndCirclePaint)
+                if (mEnableAnalogTick) {//draw ticks
+                    for ((i, t) in mClockTick.withIndex()) {
+                        if (i == 0 && mEnableBatteryText) continue
+                        canvas.drawLine(t.left, t.top, t.right, t.bottom, mHourPaint)
+                    }
                 }
             }
         }
 
         private fun drawBatteryBackground(canvas: Canvas, level: Float) {
-            canvas.drawArc(mBatteryOuterRing, 0f, 36 * level, true, mBatteryLevelPaint)
-            canvas.drawArc(mBatteryInnerRing, 0f, 36 * level, true, mBatteryInnerPaint)
+            canvas.drawArc(mBatteryOuterRing,
+                    if (mEnableBatteryText) 0f else -85f,
+                    if (mEnableBatteryText) 3.6f * level else 3.5f * level,
+                    true, mBatteryLevelPaint)
+            canvas.drawOval(mBatteryInnerRing, mBatteryInnerPaint)
+            if (mEnableBatteryText) {
+                val text = level.toInt().toString()
+                val bounds = Rect()
+                mMinutePaint.getTextBounds(text, 0, text.length, bounds)
+                canvas.drawText(text, mCenterX - bounds.width() / 2,
+                        mBatteryOuterRing.top + bounds.height(), mMinutePaint)
+            }
         }
 
         private fun drawComplications(canvas: Canvas, currentTimeMillis: Long) {
@@ -579,9 +603,10 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val minutes = String.format("%02d", m)
                 mTickAndCirclePaint.getTextBounds(hours, 0, hours.length, bounds)
                 canvas.drawText(hours, mCenterX - bounds.width() - 20,
-                        mCenterY + bounds.height() / 2, mTickAndCirclePaint)
+                        mCenterY + bounds.height() / 2, mDigitalClockPaint)
                 mTickAndCirclePaint.getTextBounds(minutes, 0, minutes.length, bounds)
-                canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2, mTickAndCirclePaint)
+                canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2,
+                        mDigitalClockPaint)
             }
             /*
              * Save the canvas state before we can begin to rotate it.

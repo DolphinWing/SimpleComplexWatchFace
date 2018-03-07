@@ -6,7 +6,9 @@
 
     <string name="config_title_second_hand">Second hand</string>
     <string name="config_title_battery_ring">Battery ring</string>
+    <string name="config_title_battery_text">Battery text</string>
     <string name="config_title_digital_time">Digital time</string>
+    <string name="config_title_analog_tick">Analog tick</string>
     <string name="config_title_enable_tap">Tap action</string>
 
     <!--
