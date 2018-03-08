@@ -1,3 +1,7 @@
 <resources>
-    <string name="hello_world">Hello Round World!</string>
+    <!--
+    This string is used for round devices and overridden by hello_world in
+    values/strings.xml for round devices.
+    -->
+    <!--<string name="hello_world">Hello Round World!</string>-->
 </resources>
