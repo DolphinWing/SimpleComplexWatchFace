@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Simply Complex</string>
+    <string name="my_face_name">Simply Complex</string>
+    <string name="title_activity_config">設置</string>
+
+    <string name="config_title_second_hand">秒針顯示</string>
+    <string name="config_title_battery_ring">電量指示</string>
+    <string name="config_title_battery_text">電量文字</string>
+    <string name="config_title_digital_time">數位時鐘</string>
+    <string name="config_title_analog_tick">類比刻度</string>
+    <string name="config_title_enable_tap">點擊動作</string>
 </resources>
