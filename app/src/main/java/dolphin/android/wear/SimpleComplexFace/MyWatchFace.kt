@@ -46,6 +46,7 @@ private const val CENTER_GAP_AND_CIRCLE_RADIUS_H = CENTER_GAP_AND_CIRCLE_RADIUS_
 private const val SHADOW_RADIUS = 6f
 
 private const val TAG = "MyWatchFace"
+private const val DEMO_BATTERY = -1
 
 private const val OUTER_RING_THICKNESS = 3f
 private const val INNER_RING_THICKNESS = 9f
@@ -549,7 +550,7 @@ class MyWatchFace : CanvasWatchFaceService() {
         private fun drawBatteryBackground(canvas: Canvas, level: Float) {
             if (mEnableBatteryRing) {
                 canvas.drawArc(mBatteryOuterRing,
-                        if (mEnableBatteryText) -85f else 0f,
+                        if (mEnableBatteryText) -85f else -90f,
                         if (mEnableBatteryText) 3.5f * level else 3.6f * level,
                         true, mBatteryLevelPaint)
                 canvas.drawOval(mBatteryInnerRing, mBatteryInnerPaint)
@@ -760,7 +761,10 @@ class MyWatchFace : CanvasWatchFaceService() {
                 Log.d(TAG, "value: ${data?.value}")
                 Log.d(TAG, "  min: ${data?.minValue}")
                 Log.d(TAG, "  max: ${data?.maxValue}")
-                mBatteryLevel = data?.value ?: 0f
+                @Suppress("ConstantConditionIf")
+                mBatteryLevel = if (DEMO_BATTERY < 0 || DEMO_BATTERY > 100)
+                    data?.value ?: 0f else DEMO_BATTERY * 1f
+
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
                     in 1..15 -> Color.argb(255, 180, 85, 80)
                     in 16..30 -> Color.argb(255, 185, 185, 60)
