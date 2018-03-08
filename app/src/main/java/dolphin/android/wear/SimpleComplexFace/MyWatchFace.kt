@@ -523,7 +523,6 @@ class MyWatchFace : CanvasWatchFaceService() {
             invalidate()
         }
 
-
         override fun onDraw(canvas: Canvas, bounds: Rect) {
             val now = System.currentTimeMillis()
             mCalendar.timeInMillis = now
@@ -548,15 +547,18 @@ class MyWatchFace : CanvasWatchFaceService() {
         }
 
         private fun drawBatteryBackground(canvas: Canvas, level: Float) {
+            val batteryLevel = if (level < 0) 0f else level
             if (mEnableBatteryRing) {
                 canvas.drawArc(mBatteryOuterRing,
                         if (mEnableBatteryText) -85f else -90f,
-                        if (mEnableBatteryText) 3.5f * level else 3.6f * level,
+                        if (mEnableBatteryText) 3.5f * batteryLevel else 3.6f * batteryLevel,
                         true, mBatteryLevelPaint)
+                //draw a oval inside no matter what
                 canvas.drawOval(mBatteryInnerRing, mBatteryInnerPaint)
             }
             if (mEnableBatteryText) {
-                val text = if (mEnableBatteryRing) level.toInt().toString() else "${level.toInt()}%"
+                val text = if (mEnableBatteryRing) batteryLevel.toInt().toString()
+                    else "${batteryLevel.toInt()}%"
                 val bounds = Rect()
                 mMinutePaint.getTextBounds(text, 0, text.length, bounds)
                 canvas.drawText(text, mCenterX - bounds.width() / 2,
@@ -610,11 +612,11 @@ class MyWatchFace : CanvasWatchFaceService() {
             //mCalendar.get(Calendar.SECOND) + mCalendar.get(Calendar.MILLISECOND) / 1000f
             val secondsRotation = s * 6f
 
-            val minHandOffset = s / 10
+            val minHandOffset = s * .1f
             val minutesRotation = m * 6f + minHandOffset
 
             val hourHandOffset = m / 2f
-            val hoursRotation = h * 30 + hourHandOffset + s / 60
+            val hoursRotation = h * 30f + hourHandOffset + s / 60f
 
             if (!mAmbient && mEnableDigitalClock) {
                 val bounds = Rect()
@@ -622,9 +624,9 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val minutes = String.format("%02d", m)
                 mDigitalClockPaint.getTextBounds(hours, 0, hours.length, bounds)
                 canvas.drawText(hours, mCenterX - bounds.width() - 20,
-                        mCenterY + bounds.height() / 2, mDigitalClockPaint)
+                        mCenterY + bounds.height() / 2f, mDigitalClockPaint)
                 mDigitalClockPaint.getTextBounds(minutes, 0, minutes.length, bounds)
-                canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2,
+                canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2f,
                         mDigitalClockPaint)
             }
             /*
