@@ -35,7 +35,7 @@ class Configs(context: Context) {
         set(value) = prefs.edit().putBoolean(KEY_BATTERY_RING, value).apply()
 
     var batteryTextEnabled: Boolean
-        get() = prefs.getBoolean(KEY_BATTERY_TEXT, false)
+        get() = prefs.getBoolean(KEY_BATTERY_TEXT, true)
         set(value) = prefs.edit().putBoolean(KEY_BATTERY_TEXT, value).apply()
 
     var analogTickEnabled: Boolean

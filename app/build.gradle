@@ -1,7 +1,5 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
 
 android {
@@ -10,7 +8,7 @@ android {
         applicationId "dolphin.android.wear.SimpleComplexFace"
         minSdkVersion 23
         targetSdkVersion 26
-        versionCode 2
+        versionCode 3
         versionName "1.0"
         multiDexEnabled true
     }
