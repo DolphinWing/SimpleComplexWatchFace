@@ -14,11 +14,11 @@
     <dimen name="inner_frame_layout_padding">5dp</dimen>
 
     <!-- Complication configuration -->
-    <dimen name="config_clock_radius">160dp</dimen>
-    <dimen name="config_complication_radius">36dp</dimen>
-    <dimen name="config_complication_side_margin_v">36dp</dimen>
-    <dimen name="config_complication_side_margin_h">28dp</dimen>
-    <dimen name="config_complication_center_margin">18dp</dimen>
-    <dimen name="config_color_radius">32dp</dimen>
+    <dimen name="config_clock_radius">168dp</dimen>
+    <dimen name="config_complication_radius">42dp</dimen>
+    <dimen name="config_complication_side_margin_v">40dp</dimen>
+    <dimen name="config_complication_side_margin_h">20dp</dimen>
+    <dimen name="config_complication_center_margin">16dp</dimen>
+    <dimen name="config_color_radius">40dp</dimen>
     <dimen name="config_separator_width">8dp</dimen>
 </resources>
