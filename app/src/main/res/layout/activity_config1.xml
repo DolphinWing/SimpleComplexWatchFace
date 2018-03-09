@@ -88,6 +88,42 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Enable tap" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    style="@style/MyTheme.Configuration.Color"
+                    android:contentDescription="@null"
+                    android:src="@drawable/color_oval_white" />
+
+                <ImageView
+                    style="@style/MyTheme.Configuration.Color"
+                    android:contentDescription="@null"
+                    android:src="@drawable/color_oval_red" />
+
+                <ImageView
+                    style="@style/MyTheme.Configuration.Color"
+                    android:contentDescription="@null"
+                    android:src="@drawable/color_oval_green" />
+
+                <ImageView
+                    style="@style/MyTheme.Configuration.Color"
+                    android:contentDescription="@null"
+                    android:src="@drawable/color_oval_blue" />
+
+                <ImageView
+                    style="@style/MyTheme.Configuration.Color"
+                    android:contentDescription="@null"
+                    android:src="@drawable/color_oval_orange" />
+
+                <ImageView
+                    style="@style/MyTheme.Configuration.Color"
+                    android:contentDescription="@null"
+                    android:src="@drawable/color_oval_purple" />
+            </LinearLayout>
         </LinearLayout>
 
     </ScrollView>

@@ -9,7 +9,7 @@ import android.preference.PreferenceManager
 /**
  * Configurations
  */
-class Configs(context: Context) {
+class Configs(private val context: Context) {
     companion object {
         const val COMPLICATION_ID_BACKGROUND = 9000
         const val COMPLICATION_ID_LEFT = 9001
@@ -52,7 +52,34 @@ class Configs(context: Context) {
         get() = prefs.getBoolean(KEY_ENABLE_TAP, false)
         set(value) = prefs.edit().putBoolean(KEY_ENABLE_TAP, value).apply()
 
+    val COLOR_WHITE: Int
+        get() = Color.WHITE
+
+    val COLOR_RED: Int
+        get() = context.getColor(R.color.oval_color_red)
+
+    val COLOR_GREEN: Int
+        get() = context.getColor(R.color.oval_color_green)
+
+    val COLOR_BLUE: Int
+        get() = context.getColor(R.color.oval_color_blue)
+
+    val COLOR_ORANGE: Int
+        get() = context.getColor(R.color.oval_color_orange)
+
+    val COLOR_PURPLE: Int
+        get() = context.getColor(R.color.oval_color_purple)
+
+    fun getColorDrawable(color: Int) = when (color) {
+        COLOR_RED -> R.drawable.color_oval_red
+        COLOR_GREEN -> R.drawable.color_oval_green
+        COLOR_BLUE -> R.drawable.color_oval_blue
+        COLOR_PURPLE -> R.drawable.color_oval_purple
+        COLOR_ORANGE -> R.drawable.color_oval_orange
+        else -> R.drawable.color_oval_white
+    }
+
     var clockMainColor: Int
-        get() = prefs.getInt(KEY_COLOR, Color.WHITE)
+        get() = prefs.getInt(KEY_COLOR, COLOR_WHITE)
         set(value) = prefs.edit().putInt(KEY_COLOR, value).apply()
 }

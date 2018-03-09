@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="dolphin.android.wear.SimpleComplexFace">
 
     <uses-feature android:name="android.hardware.type.watch" />
@@ -14,7 +15,8 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault">
+        android:theme="@android:style/Theme.DeviceDefault"
+        tools:ignore="GoogleAppIndexingWarning">
         <meta-data
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
@@ -53,16 +55,15 @@
             android:name="com.google.android.wearable"
             android:required="true" />
 
-        <activity
-            android:name=".ConfigActivity"
-            android:label="@string/title_activity_config">
+        <activity android:name=".ConfigActivity">
             <intent-filter>
-                <action android:name="com.example.android.wearable.watchface.CONFIG_COMPLICATION_SIMPLE"/>
+                <action android:name="com.example.android.wearable.watchface.CONFIG_COMPLICATION_SIMPLE" />
 
-                <category android:name="com.google.android.wearable.watchface.category.WEARABLE_CONFIGURATION"/>
-                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="com.google.android.wearable.watchface.category.WEARABLE_CONFIGURATION" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity android:name=".ColorPickerActivity" />
     </application>
 
 </manifest>

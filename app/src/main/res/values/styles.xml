@@ -6,8 +6,8 @@
     <style name="MyTheme.Configuration" />
 
     <style name="MyTheme.Configuration.Complication">
-        <item name="android:layout_width">@dimen/complication_radius</item>
-        <item name="android:layout_height">@dimen/complication_radius</item>
+        <item name="android:layout_width">@dimen/config_complication_radius</item>
+        <item name="android:layout_height">@dimen/config_complication_radius</item>
         <item name="android:padding">4dp</item>
         <item name="android:background">@drawable/bg_ring</item>
     </style>
@@ -23,7 +23,7 @@
     </style>
 
     <style name="MyTheme.Configuration.Separator">
-        <item name="android:layout_width">8dp</item>
+        <item name="android:layout_width">@dimen/config_separator_width</item>
         <item name="android:layout_height">match_parent</item>
     </style>
 
@@ -31,5 +31,12 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_gravity">center_vertical</item>
+    </style>
+
+    <style name="MyTheme.Configuration.Color">
+        <item name="android:layout_width">@dimen/config_color_radius</item>
+        <item name="android:layout_height">@dimen/config_color_radius</item>
+        <item name="android:contentDescription">@null</item>
+        <item name="android:layout_gravity">center</item>
     </style>
 </resources>

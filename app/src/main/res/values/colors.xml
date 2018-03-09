@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- battery color -->
+    <color name="battery_fine">@android:color/holo_green_light</color>
+    <color name="battery_warning">#efcf20</color>
+    <color name="battery_critical">#ef3020</color>
+
+    <!-- oval color -->
+    <color name="oval_color_red">#ef5050</color>
+    <color name="oval_color_green">#709f20</color>
+    <color name="oval_color_blue">#3090ff</color>
+    <color name="oval_color_orange">#ee7f30</color>
+    <color name="oval_color_purple">#c050ef</color>
+</resources>

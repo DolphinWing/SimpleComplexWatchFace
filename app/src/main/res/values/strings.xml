@@ -2,7 +2,6 @@
     <string name="app_name">Simply Complex</string>
     <!--<string name="message">Watch face tapped</string>-->
     <string name="my_face_name">Simply Complex</string>
-    <string name="title_activity_config">Configuration</string>
 
     <string name="config_title_second_hand">Second tick</string>
     <string name="config_title_battery_ring">Battery level</string>

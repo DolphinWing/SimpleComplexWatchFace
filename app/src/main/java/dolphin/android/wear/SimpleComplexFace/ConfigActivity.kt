@@ -7,10 +7,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
-import android.graphics.Color
 import android.os.Bundle
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
 import android.support.wearable.activity.WearableActivity
 import android.support.wearable.complications.*
@@ -26,13 +25,13 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         private const val TAG = "ConfigActivity"
 
         private const val ITEM_COMPLICATION = 0
-        private const val ITEM_SECOND_HAND = 1
-        private const val ITEM_BATTERY_RING = 2
-        private const val ITEM_BATTERY_TEXT = 3
-        private const val ITEM_ANALOG_TICKER = 4
-        private const val ITEM_DIGITAL_TIME = 5
-        private const val ITEM_TAP_RESPONSE = 6
-        private const val ITEM_COLOR = 7
+        private const val ITEM_SECOND_HAND = 2
+        private const val ITEM_BATTERY_RING = 3
+        private const val ITEM_BATTERY_TEXT = 4
+        private const val ITEM_ANALOG_TICKER = 5
+        private const val ITEM_DIGITAL_TIME = 6
+        private const val ITEM_TAP_RESPONSE = 7
+        private const val ITEM_COLOR = 1
         private const val ITEM_VERSION = 8
 
         private const val ITEM_SIZE = ITEM_VERSION + 1
@@ -49,8 +48,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         //setContentView(R.layout.activity_config1)
         setContentView(R.layout.activity_config2)
 
-        // Enables Always-on
-        setAmbientEnabled()
+//        // Enables Always-on
+//        setAmbientEnabled()
 
         mWatchFaceComponentName = ComponentName(this, MyWatchFace::class.java)
         mConfigs = Configs(this)
@@ -59,7 +58,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         mWearableRecyclerView?.let {
             mMyAdapter = MyAdapter(this)
             it.adapter = mMyAdapter
-            it.layoutManager = WearableLinearLayoutManager(this, CustomScrollingLayoutCallback())
+//            it.layoutManager = WearableLinearLayoutManager(this, CustomScrollingLayoutCallback())
+            it.layoutManager = LinearLayoutManager(this)
             it.isEdgeItemsCenteringEnabled = true
             it.setHasFixedSize(true)
         }
@@ -101,26 +101,26 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         mProviderInfoRetriever.release()
     }
 
-    inner class CustomScrollingLayoutCallback : WearableLinearLayoutManager.LayoutCallback() {
-//        /** How much should we scale the icon at most.  */
-//        private val MAX_ICON_PROGRESS = 0.65f
+//    inner class CustomScrollingLayoutCallback : WearableLinearLayoutManager.LayoutCallback() {
+////        /** How much should we scale the icon at most.  */
+////        private val MAX_ICON_PROGRESS = 0.65f
+////
+////        private var mProgressToCenter: Float = 0.toFloat()
 //
-//        private var mProgressToCenter: Float = 0.toFloat()
-
-        override fun onLayoutFinished(child: View, parent: RecyclerView) {
-//            // Figure out % progress from top to bottom
-//            val centerOffset = child.height.toFloat() / 2.0f / parent.height.toFloat()
-//            val yRelativeToCenterOffset = child.y / parent.height + centerOffset
-//
-//            // Normalize for center
-//            mProgressToCenter = Math.abs(0.5f - yRelativeToCenterOffset)
-//            // Adjust to the maximum scale
-//            mProgressToCenter = Math.min(mProgressToCenter, MAX_ICON_PROGRESS)
-//
-//            child.scaleX = 1 - mProgressToCenter
-//            child.scaleY = 1 - mProgressToCenter
-        }
-    }
+//        override fun onLayoutFinished(child: View, parent: RecyclerView) {
+////            // Figure out % progress from top to bottom
+////            val centerOffset = child.height.toFloat() / 2.0f / parent.height.toFloat()
+////            val yRelativeToCenterOffset = child.y / parent.height + centerOffset
+////
+////            // Normalize for center
+////            mProgressToCenter = Math.abs(0.5f - yRelativeToCenterOffset)
+////            // Adjust to the maximum scale
+////            mProgressToCenter = Math.min(mProgressToCenter, MAX_ICON_PROGRESS)
+////
+////            child.scaleX = 1 - mProgressToCenter
+////            child.scaleY = 1 - mProgressToCenter
+//        }
+//    }
 
     override fun onClick(view: View?) {
         when (view?.id) {
@@ -165,6 +165,11 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                     Log.d(TAG, "Provider: $complicationProviderInfo")
                     updateComplicationViews(requestCode, complicationProviderInfo)
                 }
+                ITEM_COLOR -> {
+                    val color = data?.getIntExtra(ColorPickerActivity.KEY_COLOR, mConfigs.COLOR_WHITE)
+                            ?: mConfigs.COLOR_WHITE
+                    mMyAdapter?.updateColor(color)
+                }
             }
     }
 
@@ -185,7 +190,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         }
     }
 
-    class MyAdapter(private val activity: Activity) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private class MyAdapter(private val activity: Activity) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         companion object {
             const val TYPE_CLOCK = 1
             const val TYPE_SWITCH = 2
@@ -200,13 +205,16 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             val inflater = LayoutInflater.from(parent?.context)
             when (viewType) {
                 TYPE_CLOCK -> {
-                    mClockHolder = ClockHolder(activity, inflater.inflate(R.layout.holder_clock, parent, false))
+                    mClockHolder = ClockHolder(activity,
+                            inflater.inflate(R.layout.holder_clock, parent, false))
                     return mClockHolder as ClockHolder
                 }
                 TYPE_SWITCH ->
-                    return SwitchHolder(activity, inflater.inflate(R.layout.holder_switch, parent, false))
+                    return SwitchHolder(activity,
+                            inflater.inflate(R.layout.holder_switch, parent, false))
                 TYPE_COLOR ->
-                    return ColorHolder(inflater.inflate(R.layout.holder_color, parent, false))
+                    return ColorHolder(activity,
+                            inflater.inflate(R.layout.holder_color, parent, false))
             }
             return TextHolder(inflater.inflate(R.layout.holder_text, parent, false))
         }
@@ -215,8 +223,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 
         override fun getItemViewType(position: Int): Int = when (position) {
             ITEM_COMPLICATION -> TYPE_CLOCK
-            in 1..6 -> TYPE_SWITCH
-            7 -> TYPE_COLOR
+            in 2..7 -> TYPE_SWITCH
+            1 -> TYPE_COLOR
             else -> TYPE_TEXT
         }
 
@@ -227,12 +235,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             ITEM_ANALOG_TICKER -> configs.analogTickEnabled
             ITEM_DIGITAL_TIME -> configs.digitalTimeEnabled
             ITEM_TAP_RESPONSE -> configs.tapComplicationEnabled
-            ITEM_COLOR -> when (configs.clockMainColor) {
-//                Color.BLUE -> R.drawable.color_oval_blue
-//                Color.RED -> R.drawable.color_oval_red
-//                Color.GREEN -> R.drawable.color_oval_green
-                else -> R.drawable.color_oval_white
-            }
+            ITEM_COLOR -> configs.getColorDrawable(configs.clockMainColor)
             else -> null
         }
 
@@ -248,25 +251,20 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder?, position: Int) {
-            when (position) {
-                in 1..6 -> {
-                    //val switchHolder = holder as SwitchHolder
-                    (holder as SwitchHolder).apply {
-                        switch.tag = position
-                        switch.isChecked = getItemValue(position) as Boolean
-                        text.text = getItemTitle(position)
-                    }
+            when (holder) {
+                is SwitchHolder -> holder.apply {
+                    switch.tag = position
+                    switch.isChecked = getItemValue(position) as Boolean
+                    text.text = getItemTitle(position)
                 }
-                ITEM_COLOR -> {
-                    (holder as ColorHolder).apply {
-                        text.text = getItemTitle(position)
-                        icon.setImageResource(getItemValue(position) as Int)
-                    }
+                is ColorHolder -> holder.apply {
+                    text.text = getItemTitle(position)
+                    icon.setImageResource(getItemValue(position) as Int)
                 }
-                ITEM_VERSION -> {
+                is TextHolder -> {
                     val pInfo: PackageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
                     //val textHolder = holder as TextHolder
-                    (holder as TextHolder).text.text = pInfo.versionName
+                    holder.text.text = pInfo.versionName
                 }
             }
         }
@@ -275,10 +273,15 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                                     complicationProviderInfo: ComplicationProviderInfo?) {
             mClockHolder?.updateComplicationViews(watchFaceComplicationId, complicationProviderInfo)
         }
+
+        fun updateColor(color: Int) {
+            configs.clockMainColor = color
+            notifyDataSetChanged()
+        }
     }
 
-    class ClockHolder(private val activity: Activity, view: View) : RecyclerView.ViewHolder(view),
-            View.OnClickListener {
+    private class ClockHolder(private val activity: Activity, view: View)
+        : RecyclerView.ViewHolder(view), View.OnClickListener {
         private var icon1: ImageView = view.findViewById(R.id.icon1)
         private var icon2: ImageView = view.findViewById(R.id.icon2)
         private var icon3: ImageView = view.findViewById(R.id.icon3)
@@ -338,8 +341,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         }
     }
 
-    class SwitchHolder(context: Context, view: View) : RecyclerView.ViewHolder(view),
-            CompoundButton.OnCheckedChangeListener {
+    private class SwitchHolder(context: Context, view: View)
+        : RecyclerView.ViewHolder(view), CompoundButton.OnCheckedChangeListener {
         private val configs = Configs(context)
         var switch: Switch = view.findViewById(android.R.id.checkbox)
         var text: TextView = view.findViewById(android.R.id.title)
@@ -366,12 +369,23 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         }
     }
 
-    class ColorHolder(view: View) : RecyclerView.ViewHolder(view) {
+    private class ColorHolder(private val activity: Activity, view: View)
+        : RecyclerView.ViewHolder(view), View.OnClickListener {
         var text: TextView = view.findViewById(android.R.id.title)
         var icon: ImageView = view.findViewById(android.R.id.icon)
+
+        init {
+            view.setOnClickListener(this)
+        }
+
+        override fun onClick(view: View?) {
+            //start activity for result
+            activity.startActivityForResult(Intent(activity, ColorPickerActivity::class.java),
+                    ITEM_COLOR)
+        }
     }
 
-    class TextHolder(view: View) : RecyclerView.ViewHolder(view) {
+    private class TextHolder(view: View) : RecyclerView.ViewHolder(view) {
         var text: TextView = view.findViewById(android.R.id.title)
     }
 }

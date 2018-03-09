@@ -1,4 +1,4 @@
-@file:Suppress("PackageName")
+@file:Suppress("PackageName", "ConstantConditionIf")
 
 package dolphin.android.wear.SimpleComplexFace
 
@@ -35,18 +35,19 @@ private const val INTERACTIVE_UPDATE_RATE_MS = 1000
  */
 private const val MSG_UPDATE_TIME = 0
 
-private const val HOUR_STROKE_WIDTH = 9f
-private const val MINUTE_STROKE_WIDTH = 6f
+//private const val HOUR_STROKE_WIDTH = 9f
+//private const val MINUTE_STROKE_WIDTH = 6f
 private const val SECOND_TICK_STROKE_WIDTH = 3f
 
-private const val CENTER_GAP_AND_CIRCLE_RADIUS = 4f
-private const val CENTER_GAP_AND_CIRCLE_RADIUS_M = CENTER_GAP_AND_CIRCLE_RADIUS * 3
-private const val CENTER_GAP_AND_CIRCLE_RADIUS_H = CENTER_GAP_AND_CIRCLE_RADIUS_M * 2
+//private const val CENTER_GAP_AND_CIRCLE_RADIUS = 4f
+//private const val CENTER_GAP_AND_CIRCLE_RADIUS_M = CENTER_GAP_AND_CIRCLE_RADIUS * 3
+//private const val CENTER_GAP_AND_CIRCLE_RADIUS_H = CENTER_GAP_AND_CIRCLE_RADIUS_M * 2
 
-private const val SHADOW_RADIUS = 6f
+//private const val SHADOW_RADIUS = 6f
 
 private const val TAG = "MyWatchFace"
-private const val DEMO_BATTERY = 74
+private const val DEBUG_LOG = false
+private const val DEMO_BATTERY = -1 //74
 
 //private const val OUTER_RING_THICKNESS = 3f
 //private const val INNER_RING_THICKNESS = 9f
@@ -92,9 +93,9 @@ class MyWatchFace : CanvasWatchFaceService() {
         private var mCenterX: Float = 0F
         private var mCenterY: Float = 0F
 
-        private var mSecondHandWidth: Float = SECOND_TICK_STROKE_WIDTH
-        private var mMinuteHandWidth: Float = MINUTE_STROKE_WIDTH
-        private var mHourHandWidth: Float = HOUR_STROKE_WIDTH
+        //        private var mSecondHandWidth: Float = SECOND_TICK_STROKE_WIDTH
+//        private var mMinuteHandWidth: Float = MINUTE_STROKE_WIDTH
+//        private var mHourHandWidth: Float = HOUR_STROKE_WIDTH
         private var mDrawSizeUnit = SECOND_TICK_STROKE_WIDTH
         private val mBatteryInnerRing = RectF()
         private val mBatteryOuterRing = RectF()
@@ -105,8 +106,13 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         /* Colors for all hands (hour, minute, seconds, ticks) based on photo loaded. */
         private var mWatchHandColor: Int = 0
-        private var mWatchHandHighlightColor: Int = 0
-        private var mWatchHandShadowColor: Int = 0
+        //private var mWatchHandHighlightColor: Int = 0
+        //private var mWatchHandShadowColor: Int = 0
+        private var mBatteryRingColor = intArrayOf(
+                baseContext.getColor(R.color.battery_fine),
+                baseContext.getColor(R.color.battery_warning),
+                baseContext.getColor(R.color.battery_critical)
+        )
 
         private lateinit var mHourPaint: Paint
         private lateinit var mMinutePaint: Paint
@@ -153,15 +159,20 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             mCalendar = Calendar.getInstance()
             mConfigs = Configs(applicationContext)
+
+            loadPreferenceData()
+            initializeComplicationsAndBackground()
+            initializeWatchFace()
+        }
+
+        private fun loadPreferenceData() {
             mEnableSecondHand = mConfigs.secondHandEnabled
             mEnableBatteryRing = mConfigs.batteryRingEnabled
             mEnableBatteryText = mConfigs.batteryTextEnabled
             mEnableAnalogTick = mConfigs.analogTickEnabled
             mEnableDigitalClock = mConfigs.digitalTimeEnabled
             mEnableTapResponse = mConfigs.tapComplicationEnabled
-
-            initializeComplicationsAndBackground()
-            initializeWatchFace()
+            mWatchHandColor = mConfigs.clockMainColor
         }
 
         private fun initializeComplicationsAndBackground() {
@@ -204,36 +215,38 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         private fun initializeWatchFace() {
             /* Set defaults for colors */
-            mWatchHandColor = Color.WHITE
-            mWatchHandHighlightColor = Color.RED
-            mWatchHandShadowColor = Color.BLACK
+            //mWatchHandColor = Color.WHITE
+            //mWatchHandHighlightColor = Color.RED
+            //mWatchHandShadowColor = Color.BLACK
 
             mHourPaint = Paint().apply {
                 color = mWatchHandColor
-                strokeWidth = mHourHandWidth
+                strokeWidth = mDrawSizeUnit * 4
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
-                setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+//                setShadowLayer(
+//                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
             }
 
             mMinutePaint = Paint().apply {
                 textSize = 18f
                 color = mWatchHandColor
-                strokeWidth = mMinuteHandWidth
+                strokeWidth = mDrawSizeUnit * 3
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
-                setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+//                setShadowLayer(
+//                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
             }
 
             mSecondPaint = Paint().apply {
-                color = mWatchHandHighlightColor
-                strokeWidth = mSecondHandWidth
+                color = mWatchHandColor//Color.RED //mWatchHandHighlightColor
+//                        Color.argb(200, Color.red(mWatchHandColor),
+//                                Color.green(mWatchHandColor), Color.blue(mWatchHandColor))
+                strokeWidth = mDrawSizeUnit
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
-                setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+//                setShadowLayer(
+//                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
             }
 
 //            mTickAndCirclePaint = Paint().apply {
@@ -249,7 +262,7 @@ class MyWatchFace : CanvasWatchFaceService() {
             mDigitalClockPaint = Paint().apply {
                 color = Color.argb(120, 128, 128, 128)
                 textSize = 128f
-                strokeWidth = SECOND_TICK_STROKE_WIDTH
+                //strokeWidth = SECOND_TICK_STROKE_WIDTH
                 isAntiAlias = true
                 typeface = Typeface.MONOSPACE
                 isFakeBoldText = true
@@ -281,12 +294,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mComplicationDrawable.valueAt(i).setBurnInProtection(mBurnInProtection)
             }
             //Toast.makeText(applicationContext, "onPropertiesChanged", Toast.LENGTH_SHORT).show()
-            mEnableBatteryRing = mConfigs.batteryRingEnabled
-            mEnableDigitalClock = mConfigs.digitalTimeEnabled
-            mEnableBatteryText = mConfigs.batteryTextEnabled
-            mEnableAnalogTick = mConfigs.analogTickEnabled
-            mEnableSecondHand = mConfigs.secondHandEnabled
-            mEnableTapResponse = mConfigs.tapComplicationEnabled
+            loadPreferenceData()
+            updateWatchHandStyle()
         }
 
         override fun onTimeTick() {
@@ -311,39 +320,49 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         private fun updateWatchHandStyle() {
             if (mAmbient) {
-                mHourPaint.color = Color.WHITE
-                mMinutePaint.color = Color.WHITE
-                mSecondPaint.color = Color.WHITE
-                //mTickAndCirclePaint.color = Color.WHITE
+                mHourPaint.apply {
+                    color = Color.WHITE
+                    isAntiAlias = false
+                }
+                mMinutePaint.apply {
+                    color = Color.WHITE
+                    isAntiAlias = false
+                }
+                mSecondPaint.apply {
+                    color = Color.DKGRAY
+                    isAntiAlias = false
+                }
 
-                mHourPaint.isAntiAlias = false
-                mMinutePaint.isAntiAlias = false
-                mSecondPaint.isAntiAlias = false
-                //mTickAndCirclePaint.isAntiAlias = false
-
-                mHourPaint.clearShadowLayer()
-                mMinutePaint.clearShadowLayer()
-                mSecondPaint.clearShadowLayer()
-                //mTickAndCirclePaint.clearShadowLayer()
+//                mHourPaint.clearShadowLayer()
+//                mMinutePaint.clearShadowLayer()
+//                mSecondPaint.clearShadowLayer()
             } else {
-                mHourPaint.color = mWatchHandColor
-                mMinutePaint.color = mWatchHandColor
-                mSecondPaint.color = mWatchHandHighlightColor
-                //mTickAndCirclePaint.color = mWatchHandColor
+                mHourPaint.apply {
+                    color = mWatchHandColor
+                    isAntiAlias = true
+                }
+                mMinutePaint.apply {
+                    color = mWatchHandColor
+                    isAntiAlias = true
+                }
+                mSecondPaint.apply {
+                    color = mWatchHandColor//mWatchHandHighlightColor
+//                        Color.argb(200, Color.red(mWatchHandColor),
+//                                Color.green(mWatchHandColor), Color.blue(mWatchHandColor))
+                    isAntiAlias = true
+                }
 
-                mHourPaint.isAntiAlias = true
-                mMinutePaint.isAntiAlias = true
-                mSecondPaint.isAntiAlias = true
-                //mTickAndCirclePaint.isAntiAlias = true
+//                mHourPaint.setShadowLayer(
+//                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+//                mMinutePaint.setShadowLayer(
+//                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+//                mSecondPaint.setShadowLayer(
+//                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
 
-                mHourPaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
-                mMinutePaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
-                mSecondPaint.setShadowLayer(
-                        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
-                //mTickAndCirclePaint.setShadowLayer(
-                //        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+                mDigitalClockPaint.apply {
+                    color = Color.argb(64, Color.red(mWatchHandColor),
+                            Color.green(mWatchHandColor), Color.blue(mWatchHandColor))
+                }
             }
         }
 
@@ -363,7 +382,9 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             super.onSurfaceChanged(holder, format, width, height)
-            Log.d(TAG, "width = $width, height = $height")
+            if (DEBUG_LOG) {
+                Log.d(TAG, "width = $width, height = $height")
+            }
             /*
              * Find the coordinates of the center point on the screen, and ignore the window
              * insets, so that, on round watches with a "chin", the watch face is centered on the
@@ -402,28 +423,39 @@ class MyWatchFace : CanvasWatchFaceService() {
                 }
             }
 
-            mDigitalClockPaint.textSize = mCenterX * .75f
-            mMinutePaint.textSize = mDrawSizeUnit * 5
             mDigitalClockSeparatorSize = mDrawSizeUnit * 8
+            mHourPaint.apply {
+                strokeWidth = mDrawSizeUnit * 5
+            }
+            mMinutePaint.apply {
+                textSize = mDrawSizeUnit * 5
+                strokeWidth = mDrawSizeUnit * 3
+            }
+            mSecondPaint.apply {
+                strokeWidth = mDrawSizeUnit
+            }
+            mDigitalClockPaint.apply {
+                textSize = mCenterX * .75f
+            }
 
             /*
              * Calculate lengths of different hands based on watch screen size.
              */
             mClockHand[0].apply {
                 left = mCenterX
-                top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS_H
+                top = mCenterY - mDrawSizeUnit * 8//CENTER_GAP_AND_CIRCLE_RADIUS_H
                 right = mCenterX
                 bottom = mCenterY - (mCenterX * 0.5).toFloat()
             }
             mClockHand[1].apply {
                 left = mCenterX
-                top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS_M
+                top = mCenterY - mDrawSizeUnit * 4//CENTER_GAP_AND_CIRCLE_RADIUS_M
                 right = mCenterX
                 bottom = mCenterY - (mCenterX * 0.75).toFloat()
             }
             mClockHand[2].apply {
                 left = mCenterX
-                top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS
+                top = mCenterY - mDrawSizeUnit * 2//CENTER_GAP_AND_CIRCLE_RADIUS
                 right = mCenterX
                 bottom = mCenterY - (mCenterX * 0.85).toFloat()
             }
@@ -574,7 +606,7 @@ class MyWatchFace : CanvasWatchFaceService() {
             if (mEnableAnalogTick) {//draw ticks
                 for ((i, t) in mClockTick.withIndex()) {
                     if (i == 0 && mEnableBatteryText) continue
-                    canvas.drawLine(t.left, t.top, t.right, t.bottom, mHourPaint)
+                    canvas.drawLine(t.left, t.top, t.right, t.bottom, mMinutePaint)
                 }
             }
         }
@@ -763,18 +795,20 @@ class MyWatchFace : CanvasWatchFaceService() {
             //Log.d(TAG, "onComplicationDataUpdate $watchFaceComplicationId")
             //super.onComplicationDataUpdate(watchFaceComplicationId, data)
             if (watchFaceComplicationId == Configs.COMPLICATION_ID_BACKGROUND) {
-                Log.d(TAG, " type: ${data?.type}")
-                Log.d(TAG, "value: ${data?.value}")
-                Log.d(TAG, "  min: ${data?.minValue}")
-                Log.d(TAG, "  max: ${data?.maxValue}")
+                if (DEBUG_LOG) {
+                    Log.d(TAG, " type: ${data?.type}")
+                    Log.d(TAG, "value: ${data?.value}")
+                    Log.d(TAG, "  min: ${data?.minValue}")
+                    Log.d(TAG, "  max: ${data?.maxValue}")
+                }
                 @Suppress("ConstantConditionIf")
                 mBatteryLevel = if (DEMO_BATTERY < 0 || DEMO_BATTERY > 100)
                     data?.value ?: 0f else DEMO_BATTERY * 1f
 
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
-                    in 1..15 -> Color.argb(255, 180, 85, 80)
-                    in 16..30 -> Color.argb(255, 185, 185, 60)
-                    in 31..100 -> Color.argb(255, 80, 185, 80)
+                    in 1..15 -> mBatteryRingColor[2]
+                    in 16..30 -> mBatteryRingColor[1]
+                    in 31..100 -> mBatteryRingColor[0]
                     else -> Color.BLACK
                 }
             } else {
