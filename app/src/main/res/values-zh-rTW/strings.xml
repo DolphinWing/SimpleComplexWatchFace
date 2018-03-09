@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">Simply Complex</string>
     <string name="my_face_name">Simply Complex</string>
-    <string name="title_activity_config">設置</string>
 
     <string name="config_title_second_hand">秒針顯示</string>
     <string name="config_title_battery_ring">電量指示</string>
