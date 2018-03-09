@@ -598,7 +598,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val bounds = Rect()
                 mMinutePaint.getTextBounds(text, 0, text.length, bounds)
                 canvas.drawText(text, mCenterX - bounds.width() / 2,
-                        mBatteryOuterRing.top + bounds.height(), mMinutePaint)
+                        mBatteryOuterRing.top + bounds.height() - mDrawSizeUnit, mMinutePaint)
             }
         }
 
