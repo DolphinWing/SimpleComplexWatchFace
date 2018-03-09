@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MyTheme" />
+
+    <style name="MyTheme.Configuration" />
+
+    <style name="MyTheme.Configuration.Complication">
+        <item name="android:layout_width">@dimen/complication_radius</item>
+        <item name="android:layout_height">@dimen/complication_radius</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/bg_ring</item>
+    </style>
+
+    <style name="MyTheme.Configuration.Title" parent="@style/TextAppearance.WearDiag.Button">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:lines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:minHeight">32dp</item>
+        <item name="android:gravity">center_vertical|right</item>
+    </style>
+
+    <style name="MyTheme.Configuration.Separator">
+        <item name="android:layout_width">8dp</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <style name="MyTheme.Configuration.Switch" parent="@style/Widget.Wear.RoundSwitch">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_vertical</item>
+    </style>
+</resources>

@@ -3,6 +3,7 @@
 package dolphin.android.wear.SimpleComplexFace
 
 import android.content.Context
+import android.graphics.Color
 import android.preference.PreferenceManager
 
 /**
@@ -22,6 +23,7 @@ class Configs(context: Context) {
         private const val KEY_ANALOG_TICK = "analog_ticker"
         private const val KEY_DIGITAL_TIME = "digital_time"
         private const val KEY_ENABLE_TAP = "enable_tap"
+        private const val KEY_COLOR = "main_tap"
     }
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -49,4 +51,8 @@ class Configs(context: Context) {
     var tapComplicationEnabled: Boolean
         get() = prefs.getBoolean(KEY_ENABLE_TAP, false)
         set(value) = prefs.edit().putBoolean(KEY_ENABLE_TAP, value).apply()
+
+    var clockMainColor: Int
+        get() = prefs.getInt(KEY_COLOR, Color.WHITE)
+        set(value) = prefs.edit().putInt(KEY_COLOR, value).apply()
 }

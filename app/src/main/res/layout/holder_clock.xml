@@ -6,56 +6,40 @@
     tools:ignore="HardcodedText,RtlHardcoded,UselessParent">
 
     <FrameLayout
-        android:layout_width="120dp"
-        android:layout_height="120dp"
+        android:layout_width="@dimen/clock_radius"
+        android:layout_height="@dimen/clock_radius"
         android:layout_gravity="center"
-        android:background="@drawable/bg_ring">
+        android:background="@drawable/bg_ring_n">
 
         <ImageView
             android:id="@+id/icon1"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            style="@style/MyTheme.Configuration.Complication"
             android:layout_gravity="left|bottom"
-            android:layout_marginBottom="24dp"
-            android:layout_marginLeft="24dp"
-            android:background="@drawable/bg_ring"
-            android:contentDescription="@null"
-            android:gravity="center_vertical"
-            android:padding="4dp" />
+            android:layout_marginBottom="@dimen/complication_side_margin_v"
+            android:layout_marginLeft="@dimen/complication_side_margin_h"
+            android:contentDescription="@null" />
 
         <ImageView
             android:id="@+id/icon2"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            style="@style/MyTheme.Configuration.Complication"
             android:layout_gravity="bottom|right"
-            android:layout_marginBottom="24dp"
-            android:layout_marginRight="24dp"
-            android:background="@drawable/bg_ring"
-            android:contentDescription="@null"
-            android:gravity="center_vertical"
-            android:padding="4dp" />
+            android:layout_marginBottom="@dimen/complication_side_margin_v"
+            android:layout_marginRight="@dimen/complication_side_margin_h"
+            android:contentDescription="@null" />
 
         <ImageView
             android:id="@+id/icon3"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            style="@style/MyTheme.Configuration.Complication"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/bg_ring"
-            android:contentDescription="@null"
-            android:gravity="center_vertical"
-            android:padding="4dp" />
+            android:layout_marginBottom="@dimen/complication_center_margin"
+            android:contentDescription="@null" />
 
         <ImageView
             android:id="@+id/icon4"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            style="@style/MyTheme.Configuration.Complication"
             android:layout_gravity="top|center_horizontal"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/bg_ring"
-            android:contentDescription="@null"
-            android:gravity="center_vertical"
-            android:padding="4dp" />
+            android:layout_marginTop="@dimen/complication_side_margin_v"
+            android:contentDescription="@null" />
 
     </FrameLayout>
 </FrameLayout>

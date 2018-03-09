@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.widget.RecyclerView
 import android.support.wear.widget.WearableLinearLayoutManager
@@ -31,7 +32,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         private const val ITEM_ANALOG_TICKER = 4
         private const val ITEM_DIGITAL_TIME = 5
         private const val ITEM_TAP_RESPONSE = 6
-        private const val ITEM_VERSION = 7
+        private const val ITEM_COLOR = 7
+        private const val ITEM_VERSION = 8
 
         private const val ITEM_SIZE = ITEM_VERSION + 1
     }
@@ -203,6 +205,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                 }
                 TYPE_SWITCH ->
                     return SwitchHolder(activity, inflater.inflate(R.layout.holder_switch, parent, false))
+                TYPE_COLOR ->
+                    return ColorHolder(inflater.inflate(R.layout.holder_color, parent, false))
             }
             return TextHolder(inflater.inflate(R.layout.holder_text, parent, false))
         }
@@ -212,6 +216,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         override fun getItemViewType(position: Int): Int = when (position) {
             ITEM_COMPLICATION -> TYPE_CLOCK
             in 1..6 -> TYPE_SWITCH
+            7 -> TYPE_COLOR
             else -> TYPE_TEXT
         }
 
@@ -222,6 +227,12 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             ITEM_ANALOG_TICKER -> configs.analogTickEnabled
             ITEM_DIGITAL_TIME -> configs.digitalTimeEnabled
             ITEM_TAP_RESPONSE -> configs.tapComplicationEnabled
+            ITEM_COLOR -> when (configs.clockMainColor) {
+//                Color.BLUE -> R.drawable.color_oval_blue
+//                Color.RED -> R.drawable.color_oval_red
+//                Color.GREEN -> R.drawable.color_oval_green
+                else -> R.drawable.color_oval_white
+            }
             else -> null
         }
 
@@ -231,6 +242,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             ITEM_BATTERY_TEXT -> activity.getString(R.string.config_title_battery_text)
             ITEM_ANALOG_TICKER -> activity.getString(R.string.config_title_analog_tick)
             ITEM_DIGITAL_TIME -> activity.getString(R.string.config_title_digital_time)
+            ITEM_COLOR -> activity.getString(R.string.config_title_color)
             ITEM_TAP_RESPONSE -> activity.getString(R.string.config_title_enable_tap)
             else -> null
         }
@@ -243,6 +255,12 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                         switch.tag = position
                         switch.isChecked = getItemValue(position) as Boolean
                         text.text = getItemTitle(position)
+                    }
+                }
+                ITEM_COLOR -> {
+                    (holder as ColorHolder).apply {
+                        text.text = getItemTitle(position)
+                        icon.setImageResource(getItemValue(position) as Int)
                     }
                 }
                 ITEM_VERSION -> {
@@ -346,6 +364,11 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                     configs.tapComplicationEnabled = checked
             }
         }
+    }
+
+    class ColorHolder(view: View) : RecyclerView.ViewHolder(view) {
+        var text: TextView = view.findViewById(android.R.id.title)
+        var icon: ImageView = view.findViewById(android.R.id.icon)
     }
 
     class TextHolder(view: View) : RecyclerView.ViewHolder(view) {

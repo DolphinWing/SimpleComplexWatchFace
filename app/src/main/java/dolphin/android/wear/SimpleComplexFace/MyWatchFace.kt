@@ -35,8 +35,8 @@ private const val INTERACTIVE_UPDATE_RATE_MS = 1000
  */
 private const val MSG_UPDATE_TIME = 0
 
-private const val HOUR_STROKE_WIDTH = 8f
-private const val MINUTE_STROKE_WIDTH = 5f
+private const val HOUR_STROKE_WIDTH = 9f
+private const val MINUTE_STROKE_WIDTH = 6f
 private const val SECOND_TICK_STROKE_WIDTH = 3f
 
 private const val CENTER_GAP_AND_CIRCLE_RADIUS = 4f
@@ -46,10 +46,10 @@ private const val CENTER_GAP_AND_CIRCLE_RADIUS_H = CENTER_GAP_AND_CIRCLE_RADIUS_
 private const val SHADOW_RADIUS = 6f
 
 private const val TAG = "MyWatchFace"
-private const val DEMO_BATTERY = -1
+private const val DEMO_BATTERY = 74
 
-private const val OUTER_RING_THICKNESS = 3f
-private const val INNER_RING_THICKNESS = 9f
+//private const val OUTER_RING_THICKNESS = 3f
+//private const val INNER_RING_THICKNESS = 9f
 
 /**
  * Analog watch face with a ticking second hand. In ambient mode, the second hand isn't
@@ -92,14 +92,16 @@ class MyWatchFace : CanvasWatchFaceService() {
         private var mCenterX: Float = 0F
         private var mCenterY: Float = 0F
 
-        //        private var mSecondHandLength: Float = 0F
-//        private var sMinuteHandLength: Float = 0F
-//        private var sHourHandLength: Float = 0F
+        private var mSecondHandWidth: Float = SECOND_TICK_STROKE_WIDTH
+        private var mMinuteHandWidth: Float = MINUTE_STROKE_WIDTH
+        private var mHourHandWidth: Float = HOUR_STROKE_WIDTH
+        private var mDrawSizeUnit = SECOND_TICK_STROKE_WIDTH
         private val mBatteryInnerRing = RectF()
         private val mBatteryOuterRing = RectF()
         //use left,top as start point, use right,bottom as stop point
         private val mClockTick = Array(size = 12, init = { RectF() })
         private val mClockHand = Array(size = 3, init = { RectF() })
+        private var mDigitalClockSeparatorSize = mDrawSizeUnit * 8
 
         /* Colors for all hands (hour, minute, seconds, ticks) based on photo loaded. */
         private var mWatchHandColor: Int = 0
@@ -109,7 +111,7 @@ class MyWatchFace : CanvasWatchFaceService() {
         private lateinit var mHourPaint: Paint
         private lateinit var mMinutePaint: Paint
         private lateinit var mSecondPaint: Paint
-        private lateinit var mTickAndCirclePaint: Paint
+        //private lateinit var mTickAndCirclePaint: Paint
         private lateinit var mDigitalClockPaint: Paint
         private lateinit var mBatteryLevelPaint: Paint
         private lateinit var mBatteryInnerPaint: Paint
@@ -208,7 +210,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             mHourPaint = Paint().apply {
                 color = mWatchHandColor
-                strokeWidth = HOUR_STROKE_WIDTH
+                strokeWidth = mHourHandWidth
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 setShadowLayer(
@@ -216,8 +218,9 @@ class MyWatchFace : CanvasWatchFaceService() {
             }
 
             mMinutePaint = Paint().apply {
+                textSize = 18f
                 color = mWatchHandColor
-                strokeWidth = MINUTE_STROKE_WIDTH
+                strokeWidth = mMinuteHandWidth
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 setShadowLayer(
@@ -226,22 +229,22 @@ class MyWatchFace : CanvasWatchFaceService() {
 
             mSecondPaint = Paint().apply {
                 color = mWatchHandHighlightColor
-                strokeWidth = SECOND_TICK_STROKE_WIDTH
+                strokeWidth = mSecondHandWidth
                 isAntiAlias = true
                 strokeCap = Paint.Cap.ROUND
                 setShadowLayer(
                         SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
             }
 
-            mTickAndCirclePaint = Paint().apply {
-                color = mWatchHandColor
-                //textSize = 128f
-                strokeWidth = SECOND_TICK_STROKE_WIDTH
-                isAntiAlias = true
-                style = Paint.Style.STROKE
-                //setShadowLayer(
-                //        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
-            }
+//            mTickAndCirclePaint = Paint().apply {
+//                color = mWatchHandColor
+//                //textSize = 128f
+//                strokeWidth = SECOND_TICK_STROKE_WIDTH
+//                isAntiAlias = true
+//                style = Paint.Style.STROKE
+//                //setShadowLayer(
+//                //        SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
+//            }
 
             mDigitalClockPaint = Paint().apply {
                 color = Color.argb(120, 128, 128, 128)
@@ -316,7 +319,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mHourPaint.isAntiAlias = false
                 mMinutePaint.isAntiAlias = false
                 mSecondPaint.isAntiAlias = false
-                mTickAndCirclePaint.isAntiAlias = false
+                //mTickAndCirclePaint.isAntiAlias = false
 
                 mHourPaint.clearShadowLayer()
                 mMinutePaint.clearShadowLayer()
@@ -331,7 +334,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mHourPaint.isAntiAlias = true
                 mMinutePaint.isAntiAlias = true
                 mSecondPaint.isAntiAlias = true
-                mTickAndCirclePaint.isAntiAlias = true
+                //mTickAndCirclePaint.isAntiAlias = true
 
                 mHourPaint.setShadowLayer(
                         SHADOW_RADIUS, 0f, 0f, mWatchHandShadowColor)
@@ -360,7 +363,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
             super.onSurfaceChanged(holder, format, width, height)
-
+            Log.d(TAG, "width = $width, height = $height")
             /*
              * Find the coordinates of the center point on the screen, and ignore the window
              * insets, so that, on round watches with a "chin", the watch face is centered on the
@@ -369,20 +372,23 @@ class MyWatchFace : CanvasWatchFaceService() {
             mCenterX = width / 2f
             mCenterY = height / 2f
 
+            mDrawSizeUnit = width * .01f
+            val outerRingRadius = mDrawSizeUnit * 1
+            val innerRingRadius = mDrawSizeUnit * 3
             //calculate fixed position before drawing
             mBatteryOuterRing.apply {
-                left = OUTER_RING_THICKNESS
-                right = width - OUTER_RING_THICKNESS
-                top = OUTER_RING_THICKNESS
-                bottom = height - OUTER_RING_THICKNESS
+                left = outerRingRadius//OUTER_RING_THICKNESS
+                right = width - outerRingRadius//OUTER_RING_THICKNESS
+                top = outerRingRadius//OUTER_RING_THICKNESS
+                bottom = height - outerRingRadius//OUTER_RING_THICKNESS
             }
             mBatteryInnerRing.apply {
-                left = INNER_RING_THICKNESS
-                right = width - INNER_RING_THICKNESS
-                top = INNER_RING_THICKNESS
-                bottom = height - INNER_RING_THICKNESS
+                left = innerRingRadius//INNER_RING_THICKNESS
+                right = width - innerRingRadius//INNER_RING_THICKNESS
+                top = innerRingRadius//INNER_RING_THICKNESS
+                bottom = height - innerRingRadius//INNER_RING_THICKNESS
             }
-            val innerTickRadius = mCenterX - 10
+            val innerTickRadius = mCenterX - mDrawSizeUnit * 4
             val outerTickRadius = mCenterX
             for (tickIndex in 0..11) {
                 val tickRot = (tickIndex.toDouble() * Math.PI * 2.0 / 12).toFloat()
@@ -396,32 +402,30 @@ class MyWatchFace : CanvasWatchFaceService() {
                 }
             }
 
-            mDigitalClockPaint.textSize = mCenterX / 2 + 20
+            mDigitalClockPaint.textSize = mCenterX * .75f
+            mMinutePaint.textSize = mDrawSizeUnit * 5
+            mDigitalClockSeparatorSize = mDrawSizeUnit * 8
 
             /*
              * Calculate lengths of different hands based on watch screen size.
              */
-            val mSecondHandLength = (mCenterX * 0.85).toFloat()
-            val sMinuteHandLength = (mCenterX * 0.75).toFloat()
-            val sHourHandLength = (mCenterX * 0.5).toFloat()
-            //calculate hour/minute/second hand line
             mClockHand[0].apply {
                 left = mCenterX
                 top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS_H
                 right = mCenterX
-                bottom = mCenterY - sHourHandLength
+                bottom = mCenterY - (mCenterX * 0.5).toFloat()
             }
             mClockHand[1].apply {
                 left = mCenterX
                 top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS_M
                 right = mCenterX
-                bottom = mCenterY - sMinuteHandLength
+                bottom = mCenterY - (mCenterX * 0.75).toFloat()
             }
             mClockHand[2].apply {
                 left = mCenterX
                 top = mCenterY - CENTER_GAP_AND_CIRCLE_RADIUS
                 right = mCenterX
-                bottom = mCenterY - mSecondHandLength
+                bottom = mCenterY - (mCenterX * 0.85).toFloat()
             }
 
             // For most Wear devices, width and height are the same, so we just chose one (width).
@@ -558,7 +562,7 @@ class MyWatchFace : CanvasWatchFaceService() {
             }
             if (mEnableBatteryText) {
                 val text = if (mEnableBatteryRing) batteryLevel.toInt().toString()
-                    else "${batteryLevel.toInt()}%"
+                else "${batteryLevel.toInt()}%"
                 val bounds = Rect()
                 mMinutePaint.getTextBounds(text, 0, text.length, bounds)
                 canvas.drawText(text, mCenterX - bounds.width() / 2,
@@ -623,7 +627,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val hours = String.format("%02d", hh)
                 val minutes = String.format("%02d", m)
                 mDigitalClockPaint.getTextBounds(hours, 0, hours.length, bounds)
-                canvas.drawText(hours, mCenterX - bounds.width() - 20,
+                canvas.drawText(hours, mCenterX - bounds.width() - mDigitalClockSeparatorSize,
                         mCenterY + bounds.height() / 2f, mDigitalClockPaint)
                 mDigitalClockPaint.getTextBounds(minutes, 0, minutes.length, bounds)
                 canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2f,

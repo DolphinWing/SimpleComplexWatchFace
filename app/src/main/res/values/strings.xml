@@ -9,6 +9,7 @@
     <string name="config_title_battery_text">Battery text</string>
     <string name="config_title_digital_time">Digital clock</string>
     <string name="config_title_analog_tick">Analog tick</string>
+    <string name="config_title_color">Main color</string>
     <string name="config_title_enable_tap">Tap action</string>
 
     <!--
