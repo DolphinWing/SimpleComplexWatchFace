@@ -562,11 +562,11 @@ class MyWatchFace : CanvasWatchFaceService() {
         override fun onDraw(canvas: Canvas, bounds: Rect) {
             val now = System.currentTimeMillis()
             mCalendar.timeInMillis = now
-            if (shouldTimerBeRunning()) {
-                drawBackground(canvas)
-                drawComplications(canvas, now)
-                drawWatchFace(canvas)
-            }
+            //if (shouldTimerBeRunning()) {
+            drawBackground(canvas)
+            drawComplications(canvas, now)
+            drawWatchFace(canvas)
+            //}
         }
 
         private fun drawBackground(canvas: Canvas) {
