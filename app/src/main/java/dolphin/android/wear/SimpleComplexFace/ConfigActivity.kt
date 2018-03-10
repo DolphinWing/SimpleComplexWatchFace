@@ -60,7 +60,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             it.adapter = mMyAdapter
 //            it.layoutManager = WearableLinearLayoutManager(this, CustomScrollingLayoutCallback())
             it.layoutManager = LinearLayoutManager(this)
-            it.isEdgeItemsCenteringEnabled = true
+            //it.isEdgeItemsCenteringEnabled = true
             it.setHasFixedSize(true)
         }
 

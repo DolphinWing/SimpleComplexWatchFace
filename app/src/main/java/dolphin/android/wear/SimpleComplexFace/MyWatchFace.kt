@@ -47,7 +47,8 @@ private const val SECOND_TICK_STROKE_WIDTH = 3f
 
 private const val TAG = "MyWatchFace"
 private const val DEBUG_LOG = false
-private const val DEMO_BATTERY = -1 //74
+private const val DEMO_MODE = false
+private const val DEMO_BATTERY = 74
 
 //private const val OUTER_RING_THICKNESS = 3f
 //private const val INNER_RING_THICKNESS = 9f
@@ -152,12 +153,16 @@ class MyWatchFace : CanvasWatchFaceService() {
             super.onCreate(holder)
 
             setWatchFaceStyle(WatchFaceStyle.Builder(this@MyWatchFace)
-                    .setShowUnreadCountIndicator(true)
-                    .setStatusBarGravity(Gravity.CENTER_HORIZONTAL + Gravity.TOP)
-                    .setAcceptsTapEvents(true)
-                    .build())
+                                      .setShowUnreadCountIndicator(true)
+                                      .setStatusBarGravity(Gravity.CENTER_HORIZONTAL + Gravity.TOP)
+                                      .setAcceptsTapEvents(true)
+                                      .build())
 
             mCalendar = Calendar.getInstance()
+            if (DEMO_MODE) {
+                mCalendar.set(Calendar.HOUR_OF_DAY, 23)
+                mCalendar.set(Calendar.MINUTE, 52)
+            }
             mConfigs = Configs(applicationContext)
 
             loadPreferenceData()
@@ -192,25 +197,29 @@ class MyWatchFace : CanvasWatchFaceService() {
 //            }
 
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_BACKGROUND,
-                    SystemProviders.WATCH_BATTERY, ComplicationData.TYPE_RANGED_VALUE)
+                                                 SystemProviders.WATCH_BATTERY,
+                                                 ComplicationData.TYPE_RANGED_VALUE)
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_LEFT,
-                    SystemProviders.DATE, ComplicationData.TYPE_SHORT_TEXT)
+                                                 SystemProviders.DATE,
+                                                 ComplicationData.TYPE_SHORT_TEXT)
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_RIGHT,
-                    SystemProviders.STEP_COUNT, ComplicationData.TYPE_SHORT_TEXT)
+                                                 SystemProviders.STEP_COUNT,
+                                                 ComplicationData.TYPE_SHORT_TEXT)
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_BOTTOM,
-                    SystemProviders.UNREAD_NOTIFICATION_COUNT, ComplicationData.TYPE_SHORT_TEXT)
+                                                 SystemProviders.UNREAD_NOTIFICATION_COUNT,
+                                                 ComplicationData.TYPE_SHORT_TEXT)
             mComplicationDrawable.put(Configs.COMPLICATION_ID_BOTTOM,
-                    ComplicationDrawable(applicationContext))
+                                      ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_LEFT,
-                    ComplicationDrawable(applicationContext))
+                                      ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_RIGHT,
-                    ComplicationDrawable(applicationContext))
+                                      ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_TOP,
-                    ComplicationDrawable(applicationContext))
+                                      ComplicationDrawable(applicationContext))
             setComplicationsActiveAndAmbientColors(Color.DKGRAY)
             setActiveComplications(Configs.COMPLICATION_ID_BACKGROUND,
-                    Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
-                    Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP)
+                                   Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
+                                   Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP)
         }
 
         private fun initializeWatchFace() {
@@ -220,6 +229,7 @@ class MyWatchFace : CanvasWatchFaceService() {
             //mWatchHandShadowColor = Color.BLACK
 
             mHourPaint = Paint().apply {
+                style = Paint.Style.STROKE
                 color = mWatchHandColor
                 strokeWidth = mDrawSizeUnit * 4
                 isAntiAlias = true
@@ -361,7 +371,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 
                 mDigitalClockPaint.apply {
                     color = Color.argb(64, Color.red(mWatchHandColor),
-                            Color.green(mWatchHandColor), Color.blue(mWatchHandColor))
+                                       Color.green(mWatchHandColor), Color.blue(mWatchHandColor))
                 }
             }
         }
@@ -552,8 +562,6 @@ class MyWatchFace : CanvasWatchFaceService() {
                     }
 
 //                    // TODO: Add code to handle the tap gesture.
-//                    Toast.makeText(applicationContext, R.string.message, Toast.LENGTH_SHORT)
-//                            .show()
                 }
             }
             invalidate()
@@ -562,6 +570,10 @@ class MyWatchFace : CanvasWatchFaceService() {
         override fun onDraw(canvas: Canvas, bounds: Rect) {
             val now = System.currentTimeMillis()
             mCalendar.timeInMillis = now
+            if (DEMO_MODE) {
+                mCalendar.set(Calendar.HOUR_OF_DAY, 23)
+                mCalendar.set(Calendar.MINUTE, 52)
+            }
             //if (shouldTimerBeRunning()) {
             drawBackground(canvas)
             drawComplications(canvas, now)
@@ -586,9 +598,9 @@ class MyWatchFace : CanvasWatchFaceService() {
             val batteryLevel = if (level < 0) 0f else level
             if (mEnableBatteryRing) {
                 canvas.drawArc(mBatteryOuterRing,
-                        if (mEnableBatteryText) -85f else -90f,
-                        if (mEnableBatteryText) 3.5f * batteryLevel else 3.6f * batteryLevel,
-                        true, mBatteryLevelPaint)
+                               if (mEnableBatteryText) -85f else -90f,
+                               if (mEnableBatteryText) 3.5f * batteryLevel else 3.6f * batteryLevel,
+                               true, mBatteryLevelPaint)
                 //draw a oval inside no matter what
                 canvas.drawOval(mBatteryInnerRing, mBatteryInnerPaint)
             }
@@ -597,17 +609,19 @@ class MyWatchFace : CanvasWatchFaceService() {
                 else "${batteryLevel.toInt()}%"
                 val bounds = Rect()
                 mMinutePaint.getTextBounds(text, 0, text.length, bounds)
-                canvas.drawText(text, mCenterX - bounds.width() / 2,
-                        mBatteryOuterRing.top + bounds.height() - mDrawSizeUnit, mMinutePaint)
+                canvas.drawText(text, mCenterX - bounds.width() / 2 - 1,
+                                mBatteryOuterRing.top + bounds.height() - mDrawSizeUnit + 1,
+                                mMinutePaint)
             }
         }
 
         private fun drawAnalogTicker(canvas: Canvas) {
             if (mEnableAnalogTick) {//draw ticks
-                for ((i, t) in mClockTick.withIndex()) {
-                    if (i == 0 && mEnableBatteryText) continue
-                    canvas.drawLine(t.left, t.top, t.right, t.bottom, mMinutePaint)
-                }
+                mClockTick
+                        .filterIndexed { i, _ -> !(i == 0 && mEnableBatteryText) }
+                        .forEach {
+                            canvas.drawLine(it.left, it.top, it.right, it.bottom, mMinutePaint)
+                        }
             }
         }
 
@@ -660,10 +674,10 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val minutes = String.format("%02d", m)
                 mDigitalClockPaint.getTextBounds(hours, 0, hours.length, bounds)
                 canvas.drawText(hours, mCenterX - bounds.width() - mDigitalClockSeparatorSize,
-                        mCenterY + bounds.height() / 2f, mDigitalClockPaint)
+                                mCenterY + bounds.height() / 2f, mDigitalClockPaint)
                 mDigitalClockPaint.getTextBounds(minutes, 0, minutes.length, bounds)
                 canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2f,
-                        mDigitalClockPaint)
+                                mDigitalClockPaint)
             }
             /*
              * Save the canvas state before we can begin to rotate it.
@@ -719,7 +733,8 @@ class MyWatchFace : CanvasWatchFaceService() {
             for (i in 0 until mComplicationDrawable.size()) {
                 // Active mode colors.
                 mComplicationDrawable.valueAt(i).setBorderColorActive(primaryComplicationColor)
-                mComplicationDrawable.valueAt(i).setRangedValuePrimaryColorActive(primaryComplicationColor)
+                mComplicationDrawable.valueAt(i).setRangedValuePrimaryColorActive(
+                        primaryComplicationColor)
 
                 // Ambient mode colors.
                 mComplicationDrawable.valueAt(i).setBorderColorAmbient(Color.WHITE)
@@ -791,7 +806,8 @@ class MyWatchFace : CanvasWatchFaceService() {
             }
         }
 
-        override fun onComplicationDataUpdate(watchFaceComplicationId: Int, data: ComplicationData?) {
+        override fun onComplicationDataUpdate(watchFaceComplicationId: Int,
+                                              data: ComplicationData?) {
             //Log.d(TAG, "onComplicationDataUpdate $watchFaceComplicationId")
             //super.onComplicationDataUpdate(watchFaceComplicationId, data)
             if (watchFaceComplicationId == Configs.COMPLICATION_ID_BACKGROUND) {
@@ -802,9 +818,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                     Log.d(TAG, "  max: ${data?.maxValue}")
                 }
                 @Suppress("ConstantConditionIf")
-                mBatteryLevel = if (DEMO_BATTERY < 0 || DEMO_BATTERY > 100)
-                    data?.value ?: 0f else DEMO_BATTERY * 1f
-
+                mBatteryLevel = if (DEMO_MODE) DEMO_BATTERY * 1f else data?.value ?: 0f
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
                     in 1..15 -> mBatteryRingColor[2]
                     in 16..30 -> mBatteryRingColor[1]

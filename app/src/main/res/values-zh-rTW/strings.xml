@@ -8,6 +8,6 @@
     <string name="config_title_battery_text">電量文字</string>
     <string name="config_title_digital_time">數位時鐘</string>
     <string name="config_title_analog_tick">類比刻度</string>
-    <string name="config_title_color">主色調</string>
+    <string name="config_title_color">主題色</string>
     <string name="config_title_enable_tap">點擊動作</string>
 </resources>
