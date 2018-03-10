@@ -20,21 +20,27 @@ import android.view.ViewGroup
 import android.widget.*
 import java.util.concurrent.Executors
 
-class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.OnCheckedChangeListener {
+class ConfigActivity : WearableActivity(), View.OnClickListener,
+        CompoundButton.OnCheckedChangeListener {
     companion object {
         private const val TAG = "ConfigActivity"
 
-        private const val ITEM_COMPLICATION = 0
-        private const val ITEM_SECOND_HAND = 2
-        private const val ITEM_BATTERY_RING = 3
-        private const val ITEM_BATTERY_TEXT = 4
-        private const val ITEM_ANALOG_TICKER = 5
-        private const val ITEM_DIGITAL_TIME = 6
-        private const val ITEM_TAP_RESPONSE = 7
-        private const val ITEM_COLOR = 1
-        private const val ITEM_VERSION = 8
+        private enum class ItemIndex {
+            COMPLICATION, THEME_COLOR, SECOND_HAND, BATTERY_RING, BATTERY_TEXT,
+            ANALOG_TICKER, DIGITAL_TIME, TAP_RESPONSE, VERSION
+        }
 
-        private const val ITEM_SIZE = ITEM_VERSION + 1
+//        private const val ITEM_COMPLICATION = 0
+//        private const val ITEM_SECOND_HAND = 2
+//        private const val ITEM_BATTERY_RING = 3
+//        private const val ITEM_BATTERY_TEXT = 4
+//        private const val ITEM_ANALOG_TICKER = 5
+//        private const val ITEM_DIGITAL_TIME = 6
+//        private const val ITEM_TAP_RESPONSE = 7
+//        private const val ITEM_COLOR = 1
+//        private const val ITEM_VERSION = 8
+//
+//        private const val ITEM_SIZE = ITEM_VERSION + 1
     }
 
     private var mWearableRecyclerView: WearableRecyclerView? = null
@@ -86,12 +92,14 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 
         mProviderInfoRetriever = ProviderInfoRetriever(this, Executors.newSingleThreadExecutor())
         mProviderInfoRetriever.init()
-        mProviderInfoRetriever.retrieveProviderInfo(object : ProviderInfoRetriever.OnProviderInfoReceivedCallback() {
-            override fun onProviderInfoReceived(complicationId: Int, providerInfo: ComplicationProviderInfo?) {
-                updateComplicationViews(complicationId, providerInfo)
-            }
+        mProviderInfoRetriever.retrieveProviderInfo(
+                object : ProviderInfoRetriever.OnProviderInfoReceivedCallback() {
+                    override fun onProviderInfoReceived(complicationId: Int,
+                                                        providerInfo: ComplicationProviderInfo?) {
+                        updateComplicationViews(complicationId, providerInfo)
+                    }
 
-        }, mWatchFaceComponentName,
+                }, mWatchFaceComponentName,
                 Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
                 Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP)
     }
@@ -161,12 +169,14 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                 Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
                 Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP -> {
                     // Retrieves information for selected Complication provider.
-                    val complicationProviderInfo = data?.getParcelableExtra<ComplicationProviderInfo>(ProviderChooserIntent.EXTRA_PROVIDER_INFO)
+                    val complicationProviderInfo = data?.getParcelableExtra<ComplicationProviderInfo>(
+                            ProviderChooserIntent.EXTRA_PROVIDER_INFO)
                     Log.d(TAG, "Provider: $complicationProviderInfo")
                     updateComplicationViews(requestCode, complicationProviderInfo)
                 }
-                ITEM_COLOR -> {
-                    val color = data?.getIntExtra(ColorPickerActivity.KEY_COLOR, mConfigs.COLOR_WHITE)
+                ItemIndex.THEME_COLOR.ordinal -> {
+                    val color = data?.getIntExtra(ColorPickerActivity.KEY_COLOR,
+                                                  mConfigs.COLOR_WHITE)
                             ?: mConfigs.COLOR_WHITE
                     mMyAdapter?.updateColor(color)
                 }
@@ -187,10 +197,13 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         }
         complicationProviderInfo?.let {
             findViewById<ImageView>(iconId)?.setImageIcon(it.providerIcon)
+        } ?: run {
+            findViewById<ImageView>(iconId)?.setImageResource(android.R.color.transparent)
         }
     }
 
-    private class MyAdapter(private val activity: Activity) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private class MyAdapter(private val activity: Activity) :
+            RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         companion object {
             const val TYPE_CLOCK = 1
             const val TYPE_SWITCH = 2
@@ -201,59 +214,62 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         private var mClockHolder: ClockHolder? = null
         private val configs = Configs(activity)
 
-        override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): RecyclerView.ViewHolder {
+        override fun onCreateViewHolder(parent: ViewGroup?,
+                                        viewType: Int): RecyclerView.ViewHolder {
             val inflater = LayoutInflater.from(parent?.context)
             when (viewType) {
                 TYPE_CLOCK -> {
                     mClockHolder = ClockHolder(activity,
-                            inflater.inflate(R.layout.holder_clock, parent, false))
+                                               inflater.inflate(R.layout.holder_clock, parent,
+                                                                false))
                     return mClockHolder as ClockHolder
                 }
                 TYPE_SWITCH ->
                     return SwitchHolder(activity,
-                            inflater.inflate(R.layout.holder_switch, parent, false))
+                                        inflater.inflate(R.layout.holder_switch, parent, false))
                 TYPE_COLOR ->
                     return ColorHolder(activity,
-                            inflater.inflate(R.layout.holder_color, parent, false))
+                                       inflater.inflate(R.layout.holder_color, parent, false))
             }
             return TextHolder(inflater.inflate(R.layout.holder_text, parent, false))
         }
 
-        override fun getItemCount(): Int = ITEM_SIZE
+        override fun getItemCount(): Int = ItemIndex.values().size//ITEM_SIZE
 
-        override fun getItemViewType(position: Int): Int = when (position) {
-            ITEM_COMPLICATION -> TYPE_CLOCK
-            in 2..7 -> TYPE_SWITCH
-            1 -> TYPE_COLOR
+        override fun getItemViewType(position: Int): Int = when (ItemIndex.values()[position]) {
+            ItemIndex.COMPLICATION -> TYPE_CLOCK
+            ItemIndex.BATTERY_RING, ItemIndex.BATTERY_TEXT, ItemIndex.SECOND_HAND,
+            ItemIndex.DIGITAL_TIME, ItemIndex.ANALOG_TICKER, ItemIndex.TAP_RESPONSE -> TYPE_SWITCH
+            ItemIndex.THEME_COLOR -> TYPE_COLOR
             else -> TYPE_TEXT
         }
 
-        private fun getItemValue(position: Int): Any? = when (position) {
-            ITEM_SECOND_HAND -> configs.secondHandEnabled
-            ITEM_BATTERY_RING -> configs.batteryRingEnabled
-            ITEM_BATTERY_TEXT -> configs.batteryTextEnabled
-            ITEM_ANALOG_TICKER -> configs.analogTickEnabled
-            ITEM_DIGITAL_TIME -> configs.digitalTimeEnabled
-            ITEM_TAP_RESPONSE -> configs.tapComplicationEnabled
-            ITEM_COLOR -> configs.getColorDrawable(configs.clockMainColor)
+        private fun getItemValue(position: Int): Any? = when (ItemIndex.values()[position]) {
+            ItemIndex.SECOND_HAND -> configs.secondHandEnabled
+            ItemIndex.BATTERY_RING -> configs.batteryRingEnabled
+            ItemIndex.BATTERY_TEXT -> configs.batteryTextEnabled
+            ItemIndex.ANALOG_TICKER -> configs.analogTickEnabled
+            ItemIndex.DIGITAL_TIME -> configs.digitalTimeEnabled
+            ItemIndex.TAP_RESPONSE -> configs.tapComplicationEnabled
+            ItemIndex.THEME_COLOR -> configs.getColorDrawable(configs.clockMainColor)
             else -> null
         }
 
-        private fun getItemTitle(position: Int): String? = when (position) {
-            ITEM_SECOND_HAND -> activity.getString(R.string.config_title_second_hand)
-            ITEM_BATTERY_RING -> activity.getString(R.string.config_title_battery_ring)
-            ITEM_BATTERY_TEXT -> activity.getString(R.string.config_title_battery_text)
-            ITEM_ANALOG_TICKER -> activity.getString(R.string.config_title_analog_tick)
-            ITEM_DIGITAL_TIME -> activity.getString(R.string.config_title_digital_time)
-            ITEM_COLOR -> activity.getString(R.string.config_title_color)
-            ITEM_TAP_RESPONSE -> activity.getString(R.string.config_title_enable_tap)
+        private fun getItemTitle(position: Int): String? = when (ItemIndex.values()[position]) {
+            ItemIndex.THEME_COLOR -> activity.getString(R.string.config_title_color)
+            ItemIndex.SECOND_HAND -> activity.getString(R.string.config_title_second_hand)
+            ItemIndex.BATTERY_RING -> activity.getString(R.string.config_title_battery_ring)
+            ItemIndex.BATTERY_TEXT -> activity.getString(R.string.config_title_battery_text)
+            ItemIndex.ANALOG_TICKER -> activity.getString(R.string.config_title_analog_tick)
+            ItemIndex.DIGITAL_TIME -> activity.getString(R.string.config_title_digital_time)
+            ItemIndex.TAP_RESPONSE -> activity.getString(R.string.config_title_enable_tap)
             else -> null
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder?, position: Int) {
             when (holder) {
                 is SwitchHolder -> holder.apply {
-                    switch.tag = position
+                    switch.tag = ItemIndex.values()[position].name
                     switch.isChecked = getItemValue(position) as Boolean
                     text.text = getItemTitle(position)
                 }
@@ -262,7 +278,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                     icon.setImageResource(getItemValue(position) as Int)
                 }
                 is TextHolder -> {
-                    val pInfo: PackageInfo = activity.packageManager.getPackageInfo(activity.packageName, 0)
+                    val pInfo: PackageInfo = activity.packageManager.getPackageInfo(
+                            activity.packageName, 0)
                     //val textHolder = holder as TextHolder
                     holder.text.text = pInfo.versionName
                 }
@@ -307,10 +324,30 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
                                     complicationProviderInfo: ComplicationProviderInfo?) {
             complicationProviderInfo?.let {
                 when (watchFaceComplicationId) {
-                    Configs.COMPLICATION_ID_LEFT -> icon1.setImageIcon(it.providerIcon)
-                    Configs.COMPLICATION_ID_RIGHT -> icon2.setImageIcon(it.providerIcon)
-                    Configs.COMPLICATION_ID_BOTTOM -> icon3.setImageIcon(it.providerIcon)
-                    Configs.COMPLICATION_ID_TOP -> icon4.setImageIcon(it.providerIcon)
+                    Configs.COMPLICATION_ID_LEFT ->
+                        if (it.complicationType == ComplicationData.TYPE_EMPTY) {
+                            icon1.setImageResource(android.R.color.transparent)
+                        } else {
+                            icon1.setImageIcon(it.providerIcon)
+                        }
+                    Configs.COMPLICATION_ID_RIGHT ->
+                        if (it.complicationType == ComplicationData.TYPE_EMPTY) {
+                            icon2.setImageResource(android.R.color.transparent)
+                        } else {
+                            icon2.setImageIcon(it.providerIcon)
+                        }
+                    Configs.COMPLICATION_ID_BOTTOM ->
+                        if (it.complicationType == ComplicationData.TYPE_EMPTY) {
+                            icon3.setImageResource(android.R.color.transparent)
+                        } else {
+                            icon3.setImageIcon(it.providerIcon)
+                        }
+                    Configs.COMPLICATION_ID_TOP ->
+                        if (it.complicationType == ComplicationData.TYPE_EMPTY) {
+                            icon4.setImageResource(android.R.color.transparent)
+                        } else {
+                            icon4.setImageIcon(it.providerIcon)
+                        }
                 }
             }
         }
@@ -320,10 +357,10 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
             val types = when (watchFaceComplicationId) {
                 Configs.COMPLICATION_ID_TOP -> intArrayOf(ComplicationData.TYPE_ICON,
                         //ComplicationData.TYPE_LARGE_IMAGE,
-                        ComplicationData.TYPE_RANGED_VALUE,
-                        ComplicationData.TYPE_LONG_TEXT,
-                        ComplicationData.TYPE_SHORT_TEXT,
-                        ComplicationData.TYPE_SMALL_IMAGE)
+                                                          ComplicationData.TYPE_RANGED_VALUE,
+                                                          ComplicationData.TYPE_LONG_TEXT,
+                                                          ComplicationData.TYPE_SHORT_TEXT,
+                                                          ComplicationData.TYPE_SMALL_IMAGE)
                 else -> intArrayOf(//ComplicationData.TYPE_ICON,
                         //ComplicationData.TYPE_LARGE_IMAGE,
                         ComplicationData.TYPE_RANGED_VALUE,
@@ -353,17 +390,17 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
 
         override fun onCheckedChanged(button: CompoundButton?, checked: Boolean) {
             when (button?.tag) {
-                ITEM_SECOND_HAND, ITEM_SECOND_HAND.toString() ->
+                ItemIndex.SECOND_HAND, ItemIndex.SECOND_HAND.toString() ->
                     configs.secondHandEnabled = checked
-                ITEM_BATTERY_RING, ITEM_BATTERY_RING.toString() ->
+                ItemIndex.BATTERY_RING, ItemIndex.BATTERY_RING.toString() ->
                     configs.batteryRingEnabled = checked
-                ITEM_BATTERY_TEXT, ITEM_BATTERY_TEXT.toString() ->
+                ItemIndex.BATTERY_TEXT, ItemIndex.BATTERY_TEXT.toString() ->
                     configs.batteryTextEnabled = checked
-                ITEM_ANALOG_TICKER, ITEM_ANALOG_TICKER.toString() ->
+                ItemIndex.ANALOG_TICKER, ItemIndex.ANALOG_TICKER.toString() ->
                     configs.analogTickEnabled = checked
-                ITEM_DIGITAL_TIME, ITEM_DIGITAL_TIME.toString() ->
+                ItemIndex.DIGITAL_TIME, ItemIndex.DIGITAL_TIME.toString() ->
                     configs.digitalTimeEnabled = checked
-                ITEM_TAP_RESPONSE, ITEM_TAP_RESPONSE.toString() ->
+                ItemIndex.TAP_RESPONSE, ItemIndex.TAP_RESPONSE.toString() ->
                     configs.tapComplicationEnabled = checked
             }
         }
@@ -381,7 +418,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener, CompoundButton.
         override fun onClick(view: View?) {
             //start activity for result
             activity.startActivityForResult(Intent(activity, ColorPickerActivity::class.java),
-                    ITEM_COLOR)
+                                            ItemIndex.THEME_COLOR.ordinal)
         }
     }
 
