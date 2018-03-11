@@ -228,8 +228,10 @@ class MyWatchFace : CanvasWatchFaceService() {
             //mWatchHandHighlightColor = Color.RED
             //mWatchHandShadowColor = Color.BLACK
 
+            //Paint reference
+            //http://wuxiaolong.me/2016/08/20/Paint/
             mHourPaint = Paint().apply {
-                style = Paint.Style.STROKE
+                //style = Paint.Style.STROKE
                 color = mWatchHandColor
                 strokeWidth = mDrawSizeUnit * 4
                 isAntiAlias = true
