@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- battery color -->
-    <color name="battery_fine">#ef558b2f</color>
-    <color name="battery_warning">#efefcf20</color>
-    <color name="battery_critical">#efb71c1c</color>
+    <color name="battery_fine">#64dd17</color>
+    <color name="battery_warning">#ffeb3b</color>
+    <color name="battery_critical">#b71c1c</color>
 
     <!-- oval color -->
     <color name="oval_color_red">#d32f2f</color>

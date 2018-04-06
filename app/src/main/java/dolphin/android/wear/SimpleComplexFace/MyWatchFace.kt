@@ -822,13 +822,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
                     in 1..15 -> {
                         if (mConfigs.vibratorEnabled) {
-                            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                vibrator.vibrate(VibrationEffect.createWaveform(
-                                        longArrayOf(0, 500, 50, 300), -1))
-                            } else {
-                                vibrator.vibrate(longArrayOf(0, 500, 50, 300), -1)
-                            }
+                            vibrate()
                         }
                         mBatteryRingColor[2]
                     }
@@ -840,6 +834,16 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mComplicationDrawable[watchFaceComplicationId].setComplicationData(data)
             }
             invalidate()
+        }
+
+        private fun vibrate() {
+            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createWaveform(
+                        longArrayOf(0, 500, 50, 300), -1))
+            } else {
+                vibrator.vibrate(longArrayOf(0, 500, 50, 300), -1)
+            }
         }
     }
 }
