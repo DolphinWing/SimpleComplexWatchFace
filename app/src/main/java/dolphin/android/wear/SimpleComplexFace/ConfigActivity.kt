@@ -27,7 +27,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
 
         private enum class ItemIndex {
             COMPLICATION, THEME_COLOR, SECOND_HAND, BATTERY_RING, BATTERY_TEXT,
-            ANALOG_TICKER, DIGITAL_TIME, TAP_RESPONSE, VERSION
+            ANALOG_TICKER, DIGITAL_TIME, TAP_RESPONSE, LOW_BATTERY_VIBRATE, VERSION
         }
 
 //        private const val ITEM_COMPLICATION = 0
@@ -70,25 +70,25 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
             it.setHasFixedSize(true)
         }
 
-        findViewById<View>(R.id.icon1)?.setOnClickListener(this)
-        findViewById<View>(R.id.icon2)?.setOnClickListener(this)
-        findViewById<View>(R.id.icon3)?.setOnClickListener(this)
-        findViewById<CheckBox>(R.id.checkbox1)?.let {
-            it.setOnCheckedChangeListener(this)
-            it.isChecked = mConfigs.secondHandEnabled
-        }
-        findViewById<CheckBox>(R.id.checkbox2)?.let {
-            it.setOnCheckedChangeListener(this)
-            it.isChecked = mConfigs.batteryRingEnabled
-        }
-        findViewById<CheckBox>(R.id.checkbox3)?.let {
-            it.setOnCheckedChangeListener(this)
-            it.isChecked = mConfigs.digitalTimeEnabled
-        }
-        findViewById<CheckBox>(R.id.checkbox4)?.let {
-            it.setOnCheckedChangeListener(this)
-            it.isChecked = mConfigs.tapComplicationEnabled
-        }
+//        findViewById<View>(R.id.icon1)?.setOnClickListener(this)
+//        findViewById<View>(R.id.icon2)?.setOnClickListener(this)
+//        findViewById<View>(R.id.icon3)?.setOnClickListener(this)
+//        findViewById<CheckBox>(R.id.checkbox1)?.let {
+//            it.setOnCheckedChangeListener(this)
+//            it.isChecked = mConfigs.secondHandEnabled
+//        }
+//        findViewById<CheckBox>(R.id.checkbox2)?.let {
+//            it.setOnCheckedChangeListener(this)
+//            it.isChecked = mConfigs.batteryRingEnabled
+//        }
+//        findViewById<CheckBox>(R.id.checkbox3)?.let {
+//            it.setOnCheckedChangeListener(this)
+//            it.isChecked = mConfigs.digitalTimeEnabled
+//        }
+//        findViewById<CheckBox>(R.id.checkbox4)?.let {
+//            it.setOnCheckedChangeListener(this)
+//            it.isChecked = mConfigs.tapComplicationEnabled
+//        }
 
         mProviderInfoRetriever = ProviderInfoRetriever(this, Executors.newSingleThreadExecutor())
         mProviderInfoRetriever.init()
@@ -176,7 +176,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
                 }
                 ItemIndex.THEME_COLOR.ordinal -> {
                     val color = data?.getIntExtra(ColorPickerActivity.KEY_COLOR,
-                                                  mConfigs.COLOR_WHITE)
+                            mConfigs.COLOR_WHITE)
                             ?: mConfigs.COLOR_WHITE
                     mMyAdapter?.updateColor(color)
                 }
@@ -220,16 +220,16 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
             when (viewType) {
                 TYPE_CLOCK -> {
                     mClockHolder = ClockHolder(activity,
-                                               inflater.inflate(R.layout.holder_clock, parent,
-                                                                false))
+                            inflater.inflate(R.layout.holder_clock, parent,
+                                    false))
                     return mClockHolder as ClockHolder
                 }
                 TYPE_SWITCH ->
                     return SwitchHolder(activity,
-                                        inflater.inflate(R.layout.holder_switch, parent, false))
+                            inflater.inflate(R.layout.holder_switch, parent, false))
                 TYPE_COLOR ->
                     return ColorHolder(activity,
-                                       inflater.inflate(R.layout.holder_color, parent, false))
+                            inflater.inflate(R.layout.holder_color, parent, false))
             }
             return TextHolder(inflater.inflate(R.layout.holder_text, parent, false))
         }
@@ -239,7 +239,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
         override fun getItemViewType(position: Int): Int = when (ItemIndex.values()[position]) {
             ItemIndex.COMPLICATION -> TYPE_CLOCK
             ItemIndex.BATTERY_RING, ItemIndex.BATTERY_TEXT, ItemIndex.SECOND_HAND,
-            ItemIndex.DIGITAL_TIME, ItemIndex.ANALOG_TICKER, ItemIndex.TAP_RESPONSE -> TYPE_SWITCH
+            ItemIndex.DIGITAL_TIME, ItemIndex.ANALOG_TICKER, ItemIndex.TAP_RESPONSE,
+            ItemIndex.LOW_BATTERY_VIBRATE -> TYPE_SWITCH
             ItemIndex.THEME_COLOR -> TYPE_COLOR
             else -> TYPE_TEXT
         }
@@ -251,6 +252,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
             ItemIndex.ANALOG_TICKER -> configs.analogTickEnabled
             ItemIndex.DIGITAL_TIME -> configs.digitalTimeEnabled
             ItemIndex.TAP_RESPONSE -> configs.tapComplicationEnabled
+            ItemIndex.LOW_BATTERY_VIBRATE -> configs.vibratorEnabled
             ItemIndex.THEME_COLOR -> configs.getColorDrawable(configs.clockMainColor)
             else -> null
         }
@@ -263,6 +265,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
             ItemIndex.ANALOG_TICKER -> activity.getString(R.string.config_title_analog_tick)
             ItemIndex.DIGITAL_TIME -> activity.getString(R.string.config_title_digital_time)
             ItemIndex.TAP_RESPONSE -> activity.getString(R.string.config_title_enable_tap)
+            ItemIndex.LOW_BATTERY_VIBRATE -> activity.getString(R.string.config_title_vibrator)
             else -> null
         }
 
@@ -357,10 +360,10 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
             val types = when (watchFaceComplicationId) {
                 Configs.COMPLICATION_ID_TOP -> intArrayOf(ComplicationData.TYPE_ICON,
                         //ComplicationData.TYPE_LARGE_IMAGE,
-                                                          ComplicationData.TYPE_RANGED_VALUE,
-                                                          ComplicationData.TYPE_LONG_TEXT,
-                                                          ComplicationData.TYPE_SHORT_TEXT,
-                                                          ComplicationData.TYPE_SMALL_IMAGE)
+                        ComplicationData.TYPE_RANGED_VALUE,
+                        ComplicationData.TYPE_LONG_TEXT,
+                        ComplicationData.TYPE_SHORT_TEXT,
+                        ComplicationData.TYPE_SMALL_IMAGE)
                 else -> intArrayOf(//ComplicationData.TYPE_ICON,
                         //ComplicationData.TYPE_LARGE_IMAGE,
                         ComplicationData.TYPE_RANGED_VALUE,
@@ -402,6 +405,8 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
                     configs.digitalTimeEnabled = checked
                 ItemIndex.TAP_RESPONSE, ItemIndex.TAP_RESPONSE.toString() ->
                     configs.tapComplicationEnabled = checked
+                ItemIndex.LOW_BATTERY_VIBRATE, ItemIndex.LOW_BATTERY_VIBRATE.toString() ->
+                    configs.vibratorEnabled = checked
             }
         }
     }
@@ -418,7 +423,7 @@ class ConfigActivity : WearableActivity(), View.OnClickListener,
         override fun onClick(view: View?) {
             //start activity for result
             activity.startActivityForResult(Intent(activity, ColorPickerActivity::class.java),
-                                            ItemIndex.THEME_COLOR.ordinal)
+                    ItemIndex.THEME_COLOR.ordinal)
         }
     }
 

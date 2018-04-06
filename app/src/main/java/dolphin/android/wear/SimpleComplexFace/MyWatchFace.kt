@@ -7,9 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.*
-import android.os.Bundle
-import android.os.Handler
-import android.os.Message
+import android.os.*
 import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.SystemProviders
 import android.support.wearable.complications.rendering.ComplicationDrawable
@@ -153,10 +151,10 @@ class MyWatchFace : CanvasWatchFaceService() {
             super.onCreate(holder)
 
             setWatchFaceStyle(WatchFaceStyle.Builder(this@MyWatchFace)
-                                      .setShowUnreadCountIndicator(true)
-                                      .setStatusBarGravity(Gravity.CENTER_HORIZONTAL + Gravity.TOP)
-                                      .setAcceptsTapEvents(true)
-                                      .build())
+                    .setShowUnreadCountIndicator(true)
+                    .setStatusBarGravity(Gravity.CENTER_HORIZONTAL + Gravity.TOP)
+                    .setAcceptsTapEvents(true)
+                    .build())
 
             mCalendar = Calendar.getInstance()
             if (DEMO_MODE) {
@@ -197,29 +195,29 @@ class MyWatchFace : CanvasWatchFaceService() {
 //            }
 
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_BACKGROUND,
-                                                 SystemProviders.WATCH_BATTERY,
-                                                 ComplicationData.TYPE_RANGED_VALUE)
+                    SystemProviders.WATCH_BATTERY,
+                    ComplicationData.TYPE_RANGED_VALUE)
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_LEFT,
-                                                 SystemProviders.DATE,
-                                                 ComplicationData.TYPE_SHORT_TEXT)
+                    SystemProviders.DATE,
+                    ComplicationData.TYPE_SHORT_TEXT)
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_RIGHT,
-                                                 SystemProviders.STEP_COUNT,
-                                                 ComplicationData.TYPE_SHORT_TEXT)
+                    SystemProviders.STEP_COUNT,
+                    ComplicationData.TYPE_SHORT_TEXT)
             setDefaultSystemComplicationProvider(Configs.COMPLICATION_ID_BOTTOM,
-                                                 SystemProviders.UNREAD_NOTIFICATION_COUNT,
-                                                 ComplicationData.TYPE_SHORT_TEXT)
+                    SystemProviders.UNREAD_NOTIFICATION_COUNT,
+                    ComplicationData.TYPE_SHORT_TEXT)
             mComplicationDrawable.put(Configs.COMPLICATION_ID_BOTTOM,
-                                      ComplicationDrawable(applicationContext))
+                    ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_LEFT,
-                                      ComplicationDrawable(applicationContext))
+                    ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_RIGHT,
-                                      ComplicationDrawable(applicationContext))
+                    ComplicationDrawable(applicationContext))
             mComplicationDrawable.put(Configs.COMPLICATION_ID_TOP,
-                                      ComplicationDrawable(applicationContext))
+                    ComplicationDrawable(applicationContext))
             setComplicationsActiveAndAmbientColors(Color.DKGRAY)
             setActiveComplications(Configs.COMPLICATION_ID_BACKGROUND,
-                                   Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
-                                   Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP)
+                    Configs.COMPLICATION_ID_LEFT, Configs.COMPLICATION_ID_RIGHT,
+                    Configs.COMPLICATION_ID_BOTTOM, Configs.COMPLICATION_ID_TOP)
         }
 
         private fun initializeWatchFace() {
@@ -373,7 +371,7 @@ class MyWatchFace : CanvasWatchFaceService() {
 
                 mDigitalClockPaint.apply {
                     color = Color.argb(64, Color.red(mWatchHandColor),
-                                       Color.green(mWatchHandColor), Color.blue(mWatchHandColor))
+                            Color.green(mWatchHandColor), Color.blue(mWatchHandColor))
                 }
             }
         }
@@ -600,9 +598,9 @@ class MyWatchFace : CanvasWatchFaceService() {
             val batteryLevel = if (level < 0) 0f else level
             if (mEnableBatteryRing) {
                 canvas.drawArc(mBatteryOuterRing,
-                               if (mEnableBatteryText) -85f else -90f,
-                               if (mEnableBatteryText) 3.5f * batteryLevel else 3.6f * batteryLevel,
-                               true, mBatteryLevelPaint)
+                        if (mEnableBatteryText) -85f else -90f,
+                        if (mEnableBatteryText) 3.5f * batteryLevel else 3.6f * batteryLevel,
+                        true, mBatteryLevelPaint)
                 //draw a oval inside no matter what
                 canvas.drawOval(mBatteryInnerRing, mBatteryInnerPaint)
             }
@@ -612,8 +610,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val bounds = Rect()
                 mMinutePaint.getTextBounds(text, 0, text.length, bounds)
                 canvas.drawText(text, mCenterX - bounds.width() / 2 - 1,
-                                mBatteryOuterRing.top + bounds.height() - mDrawSizeUnit + 1,
-                                mMinutePaint)
+                        mBatteryOuterRing.top + bounds.height() - mDrawSizeUnit + 1,
+                        mMinutePaint)
             }
         }
 
@@ -676,10 +674,10 @@ class MyWatchFace : CanvasWatchFaceService() {
                 val minutes = String.format("%02d", m)
                 mDigitalClockPaint.getTextBounds(hours, 0, hours.length, bounds)
                 canvas.drawText(hours, mCenterX - bounds.width() - mDigitalClockSeparatorSize,
-                                mCenterY + bounds.height() / 2f, mDigitalClockPaint)
+                        mCenterY + bounds.height() / 2f, mDigitalClockPaint)
                 mDigitalClockPaint.getTextBounds(minutes, 0, minutes.length, bounds)
                 canvas.drawText(minutes, mCenterX + 4, mCenterY + bounds.height() / 2f,
-                                mDigitalClockPaint)
+                        mDigitalClockPaint)
             }
             /*
              * Save the canvas state before we can begin to rotate it.
@@ -822,7 +820,18 @@ class MyWatchFace : CanvasWatchFaceService() {
                 @Suppress("ConstantConditionIf")
                 mBatteryLevel = if (DEMO_MODE) DEMO_BATTERY * 1f else data?.value ?: 0f
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
-                    in 1..15 -> mBatteryRingColor[2]
+                    in 1..15 -> {
+                        if (mConfigs.vibratorEnabled) {
+                            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                vibrator.vibrate(VibrationEffect.createWaveform(
+                                        longArrayOf(0, 500, 50, 300), -1))
+                            } else {
+                                vibrator.vibrate(longArrayOf(0, 500, 50, 300), -1)
+                            }
+                        }
+                        mBatteryRingColor[2]
+                    }
                     in 16..30 -> mBatteryRingColor[1]
                     in 31..100 -> mBatteryRingColor[0]
                     else -> Color.BLACK

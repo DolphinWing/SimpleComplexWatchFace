@@ -10,4 +10,5 @@
     <string name="config_title_analog_tick">類比刻度</string>
     <string name="config_title_color">主題色</string>
     <string name="config_title_enable_tap">點擊動作</string>
+    <string name="config_title_vibrator">Low battery</string>
 </resources>

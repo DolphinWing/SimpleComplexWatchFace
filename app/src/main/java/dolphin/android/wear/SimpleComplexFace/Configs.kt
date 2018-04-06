@@ -24,6 +24,7 @@ class Configs(private val context: Context) {
         private const val KEY_DIGITAL_TIME = "digital_time"
         private const val KEY_ENABLE_TAP = "enable_tap"
         private const val KEY_COLOR = "main_tap"
+        private const val KEY_VIBRATE_LOW_BATTERY = "vibrate_low_battery"
     }
 
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
@@ -82,4 +83,8 @@ class Configs(private val context: Context) {
     var clockMainColor: Int
         get() = prefs.getInt(KEY_COLOR, COLOR_WHITE)
         set(value) = prefs.edit().putInt(KEY_COLOR, value).apply()
+
+    var vibratorEnabled: Boolean
+        get() = prefs.getBoolean(KEY_VIBRATE_LOW_BATTERY, false)
+        set(value) = prefs.edit().putBoolean(KEY_VIBRATE_LOW_BATTERY, value).apply()
 }
