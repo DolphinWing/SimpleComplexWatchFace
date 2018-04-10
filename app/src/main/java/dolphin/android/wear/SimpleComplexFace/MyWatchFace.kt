@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.*
+import android.media.RingtoneManager
 import android.os.*
 import android.support.wearable.complications.ComplicationData
 import android.support.wearable.complications.SystemProviders
@@ -822,7 +823,8 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
                     in 1..15 -> {
                         if (mConfigs.vibratorEnabled) {
-                            vibrate()
+                            //vibrate()
+                            ring()
                         }
                         mBatteryRingColor[2]
                     }
@@ -836,14 +838,21 @@ class MyWatchFace : CanvasWatchFaceService() {
             invalidate()
         }
 
-        private fun vibrate() {
-            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createWaveform(
-                        longArrayOf(0, 500, 50, 300), -1))
-            } else {
-                vibrator.vibrate(longArrayOf(0, 500, 50, 300), -1)
-            }
+//        private fun vibrate() {
+//            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                vibrator.vibrate(VibrationEffect.createWaveform(
+//                        longArrayOf(0, 500, 50, 300), -1))
+//            } else {
+//                vibrator.vibrate(longArrayOf(0, 500, 50, 300), -1)
+//            }
+//        }
+
+        private fun ring() {
+            val ringtoneUri = RingtoneManager.getActualDefaultRingtoneUri(applicationContext,
+                    RingtoneManager.TYPE_NOTIFICATION)
+            val ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
+            ringtone?.play()
         }
     }
 }
