@@ -8,7 +8,7 @@ android {
         applicationId "dolphin.android.wear.SimpleComplexFace"
         minSdkVersion 23
         targetSdkVersion 26
-        versionCode 7
+        versionCode 8
         versionName "1.0.3"
         multiDexEnabled true
     }

@@ -93,9 +93,9 @@ class MyWatchFace : CanvasWatchFaceService() {
         private var mCenterX: Float = 0F
         private var mCenterY: Float = 0F
 
-        //        private var mSecondHandWidth: Float = SECOND_TICK_STROKE_WIDTH
-//        private var mMinuteHandWidth: Float = MINUTE_STROKE_WIDTH
-//        private var mHourHandWidth: Float = HOUR_STROKE_WIDTH
+        //private var mSecondHandWidth: Float = SECOND_TICK_STROKE_WIDTH
+        //private var mMinuteHandWidth: Float = MINUTE_STROKE_WIDTH
+        //private var mHourHandWidth: Float = HOUR_STROKE_WIDTH
         private var mDrawSizeUnit = SECOND_TICK_STROKE_WIDTH
         private val mBatteryInnerRing = RectF()
         private val mBatteryOuterRing = RectF()
@@ -822,7 +822,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mBatteryLevel = if (DEMO_MODE) DEMO_BATTERY * 1f else data?.value ?: 0f
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
                     in 1..15 -> {
-                        if (mConfigs.vibratorEnabled) {
+                        if (mConfigs.vibratorEnabled && batteryPlugged) {
                             //vibrate()
                             ring()
                         }
@@ -854,6 +854,15 @@ class MyWatchFace : CanvasWatchFaceService() {
             val ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
             ringtone?.play()
         }
+
+        private val batteryPlugged: Boolean
+            get() {
+                val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
+                return plugged == BatteryManager.BATTERY_PLUGGED_AC ||
+                        plugged == BatteryManager.BATTERY_PLUGGED_USB ||
+                        plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS
+            }
     }
 }
 
