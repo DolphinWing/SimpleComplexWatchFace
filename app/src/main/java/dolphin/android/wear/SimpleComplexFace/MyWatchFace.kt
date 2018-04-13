@@ -822,7 +822,7 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mBatteryLevel = if (DEMO_MODE) DEMO_BATTERY * 1f else data?.value ?: 0f
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
                     in 1..15 -> {
-                        if (mConfigs.vibratorEnabled && batteryPlugged) {
+                        if (mConfigs.vibratorEnabled && !batteryPlugged) {
                             //vibrate()
                             ring()
                         }
