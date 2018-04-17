@@ -2,6 +2,7 @@
 
 package dolphin.android.wear.SimpleComplexFace
 
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -33,6 +34,7 @@ private const val INTERACTIVE_UPDATE_RATE_MS = 1000
  * Handler message id for updating the time periodically in interactive mode.
  */
 private const val MSG_UPDATE_TIME = 0
+private const val MSG_NOTIFICATION = 1
 
 //private const val HOUR_STROKE_WIDTH = 9f
 //private const val MINUTE_STROKE_WIDTH = 6f
@@ -78,6 +80,7 @@ class MyWatchFace : CanvasWatchFaceService() {
             mWeakReference.get()?.let {
                 when (msg.what) {
                     MSG_UPDATE_TIME -> it.handleUpdateTimeMessage()
+                    MSG_NOTIFICATION -> it.ring()
                 }
             }
         }
@@ -822,9 +825,13 @@ class MyWatchFace : CanvasWatchFaceService() {
                 mBatteryLevel = if (DEMO_MODE) DEMO_BATTERY * 1f else data?.value ?: 0f
                 mBatteryLevelPaint.color = when (mBatteryLevel) {
                     in 1..15 -> {
-                        if (mConfigs.vibratorEnabled && !batteryPlugged) {
-                            //vibrate()
-                            ring()
+                        if (mConfigs.vibratorEnabled && !isPriorityMode()) {//only check when enabled
+                            if (batteryPlugged) {//already plugged in, don't notify
+                                mUpdateTimeHandler.removeMessages(MSG_NOTIFICATION)
+                            } else if (!mUpdateTimeHandler.hasMessages(MSG_NOTIFICATION)) {
+                                //vibrate()
+                                ring() //show notification now, it will set a timer for later
+                            }
                         }
                         mBatteryRingColor[2]
                     }
@@ -848,11 +855,13 @@ class MyWatchFace : CanvasWatchFaceService() {
 //            }
 //        }
 
-        private fun ring() {
+        fun ring() {
             val ringtoneUri = RingtoneManager.getActualDefaultRingtoneUri(applicationContext,
                     RingtoneManager.TYPE_NOTIFICATION)
             val ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
             ringtone?.play()
+            //wait this longer and notify again
+            mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_NOTIFICATION, 180000)
         }
 
         private val batteryPlugged: Boolean
@@ -863,6 +872,11 @@ class MyWatchFace : CanvasWatchFaceService() {
                         plugged == BatteryManager.BATTERY_PLUGGED_USB ||
                         plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS
             }
+
+        fun isPriorityMode(): Boolean {
+            val manager = baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            return manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
+        }
     }
 }
 
