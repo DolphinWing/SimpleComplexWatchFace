@@ -53,6 +53,7 @@ private const val DEMO_BATTERY = 74
 
 //private const val OUTER_RING_THICKNESS = 3f
 //private const val INNER_RING_THICKNESS = 9f
+private const val DELAY_UNIT_MILLIS = 40000
 
 /**
  * Analog watch face with a ticking second hand. In ambient mode, the second hand isn't
@@ -855,25 +856,29 @@ class MyWatchFace : CanvasWatchFaceService() {
 //            }
 //        }
 
+        private var notificationDelay: Long = 0
+            get() = mBatteryLevel.toLong() * DELAY_UNIT_MILLIS
+
         fun ring() {
             val ringtoneUri = RingtoneManager.getActualDefaultRingtoneUri(applicationContext,
                     RingtoneManager.TYPE_NOTIFICATION)
             val ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
             ringtone?.play()
             //wait this longer and notify again
-            mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_NOTIFICATION, 180000)
+            mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_NOTIFICATION, notificationDelay)
         }
 
         private val batteryPlugged: Boolean
             get() {
-                val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                val intent = registerReceiver(null,
+                        IntentFilter(Intent.ACTION_BATTERY_CHANGED))
                 val plugged = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
                 return plugged == BatteryManager.BATTERY_PLUGGED_AC ||
                         plugged == BatteryManager.BATTERY_PLUGGED_USB ||
                         plugged == BatteryManager.BATTERY_PLUGGED_WIRELESS
             }
 
-        fun isPriorityMode(): Boolean {
+        private fun isPriorityMode(): Boolean {
             val manager = baseContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             return manager.currentInterruptionFilter != NotificationManager.INTERRUPTION_FILTER_ALL
         }
